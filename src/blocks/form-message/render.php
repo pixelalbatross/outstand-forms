@@ -7,7 +7,7 @@
  * @var \WP_Block $block      Block instance.
  */
 
-namespace Outstand\Forms;
+namespace Outstand\WP\Forms;
 
 $wrapper_attributes = get_block_wrapper_attributes(
 	[

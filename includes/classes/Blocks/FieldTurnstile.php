@@ -1,23 +1,23 @@
 <?php
 
-namespace Outstand\Forms\Blocks;
+namespace Outstand\WP\Forms\Blocks;
 
-use Outstand\Forms\FormBlockParser;
-use Outstand\Forms\Settings;
+use Outstand\WP\Forms\FormBlockParser;
+use Outstand\WP\Forms\Settings;
 use WP_Error;
 use WP_REST_Request;
 
 class FieldTurnstile extends AbstractBlock {
 
 	/**
-	 * @inheritDoc
+	 * {@inheritDoc}
 	 */
 	public function get_name(): string {
 		return 'field-turnstile';
 	}
 
 	/**
-	 * @inheritDoc
+	 * {@inheritDoc}
 	 */
 	public function register(): void {
 		add_action( 'wp_enqueue_scripts', [ $this, 'register_script' ], 10 );

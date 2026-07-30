@@ -15,7 +15,7 @@
  * Text Domain:       outstand-forms
  */
 
-namespace Outstand\Forms;
+namespace Outstand\WP\Forms;
 
 use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 

@@ -7,9 +7,9 @@
  * @var \WP_Block $block      Block instance.
  */
 
-namespace Outstand\Forms;
+namespace Outstand\WP\Forms;
 
-use Outstand\Forms\Settings;
+use Outstand\WP\Forms\Settings;
 
 // Get Turnstile settings.
 $settings = get_option( Settings::OPTION_NAME, [] );

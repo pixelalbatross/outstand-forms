@@ -1,6 +1,6 @@
 <?php
 
-namespace Outstand\Forms\Validation;
+namespace Outstand\WP\Forms\Validation;
 
 class Validator {
 

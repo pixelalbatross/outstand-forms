@@ -1,8 +1,6 @@
 <?php
 
-namespace Outstand\Forms;
-
-use Outstand\Forms\Settings;
+namespace Outstand\WP\Forms;
 
 class Plugin {
 

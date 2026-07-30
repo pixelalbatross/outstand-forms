@@ -11,14 +11,14 @@ class ComposerStaticInitecbecd45ee045ee9341d36cdeeec036b
     );
 
     public static $prefixLengthsPsr4 = array (
-        'O' => 
+        'O' =>
         array (
-            'Outstand\\Forms\\' => 15,
+            'Outstand\\WP\\Forms\\' => 18,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'Outstand\\Forms\\' => 
+        'Outstand\\WP\\Forms\\' =>
         array (
             0 => __DIR__ . '/../..' . '/includes/classes',
         ),
@@ -26,32 +26,33 @@ class ComposerStaticInitecbecd45ee045ee9341d36cdeeec036b
 
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
-        'Outstand\\Forms\\AbstractModule' => __DIR__ . '/../..' . '/includes/classes/AbstractModule.php',
-        'Outstand\\Forms\\Blocks\\AbstractBlock' => __DIR__ . '/../..' . '/includes/classes/Blocks/AbstractBlock.php',
-        'Outstand\\Forms\\Blocks\\FieldTurnstile' => __DIR__ . '/../..' . '/includes/classes/Blocks/FieldTurnstile.php',
-        'Outstand\\Forms\\Components\\AbstractComponent' => __DIR__ . '/../..' . '/includes/classes/Components/AbstractComponent.php',
-        'Outstand\\Forms\\Components\\ComponentInterface' => __DIR__ . '/../..' . '/includes/classes/Components/ComponentInterface.php',
-        'Outstand\\Forms\\Components\\Error' => __DIR__ . '/../..' . '/includes/classes/Components/Error.php',
-        'Outstand\\Forms\\Components\\HelpText' => __DIR__ . '/../..' . '/includes/classes/Components/HelpText.php',
-        'Outstand\\Forms\\Components\\Input' => __DIR__ . '/../..' . '/includes/classes/Components/Input.php',
-        'Outstand\\Forms\\Components\\Label' => __DIR__ . '/../..' . '/includes/classes/Components/Label.php',
-        'Outstand\\Forms\\Components\\Textarea' => __DIR__ . '/../..' . '/includes/classes/Components/Textarea.php',
-        'Outstand\\Forms\\FieldFactory' => __DIR__ . '/../..' . '/includes/classes/FieldFactory.php',
-        'Outstand\\Forms\\Fields\\AbstractField' => __DIR__ . '/../..' . '/includes/classes/Fields/AbstractField.php',
-        'Outstand\\Forms\\Fields\\Email' => __DIR__ . '/../..' . '/includes/classes/Fields/Email.php',
-        'Outstand\\Forms\\Fields\\FieldInterface' => __DIR__ . '/../..' . '/includes/classes/Fields/FieldInterface.php',
-        'Outstand\\Forms\\Fields\\Number' => __DIR__ . '/../..' . '/includes/classes/Fields/Number.php',
-        'Outstand\\Forms\\Fields\\Password' => __DIR__ . '/../..' . '/includes/classes/Fields/Password.php',
-        'Outstand\\Forms\\Fields\\Phone' => __DIR__ . '/../..' . '/includes/classes/Fields/Phone.php',
-        'Outstand\\Forms\\Fields\\Text' => __DIR__ . '/../..' . '/includes/classes/Fields/Text.php',
-        'Outstand\\Forms\\Fields\\Textarea' => __DIR__ . '/../..' . '/includes/classes/Fields/Textarea.php',
-        'Outstand\\Forms\\Fields\\URL' => __DIR__ . '/../..' . '/includes/classes/Fields/URL.php',
-        'Outstand\\Forms\\FormBlockParser' => __DIR__ . '/../..' . '/includes/classes/FormBlockParser.php',
-        'Outstand\\Forms\\Plugin' => __DIR__ . '/../..' . '/includes/classes/Plugin.php',
-        'Outstand\\Forms\\REST\\V1\\AbstractRoute' => __DIR__ . '/../..' . '/includes/classes/REST/V1/AbstractRoute.php',
-        'Outstand\\Forms\\REST\\V1\\Forms' => __DIR__ . '/../..' . '/includes/classes/REST/V1/Forms.php',
-        'Outstand\\Forms\\Settings' => __DIR__ . '/../..' . '/includes/classes/Settings.php',
-        'Outstand\\Forms\\Validation\\Validator' => __DIR__ . '/../..' . '/includes/classes/Validation/Validator.php',
+        'Outstand\\WP\\Forms\\AbstractModule' => __DIR__ . '/../..' . '/includes/classes/AbstractModule.php',
+        'Outstand\\WP\\Forms\\Blocks\\AbstractBlock' => __DIR__ . '/../..' . '/includes/classes/Blocks/AbstractBlock.php',
+        'Outstand\\WP\\Forms\\Blocks\\FieldTurnstile' => __DIR__ . '/../..' . '/includes/classes/Blocks/FieldTurnstile.php',
+        'Outstand\\WP\\Forms\\Components\\AbstractComponent' => __DIR__ . '/../..' . '/includes/classes/Components/AbstractComponent.php',
+        'Outstand\\WP\\Forms\\Components\\ComponentInterface' => __DIR__ . '/../..' . '/includes/classes/Components/ComponentInterface.php',
+        'Outstand\\WP\\Forms\\Components\\Error' => __DIR__ . '/../..' . '/includes/classes/Components/Error.php',
+        'Outstand\\WP\\Forms\\Components\\HelpText' => __DIR__ . '/../..' . '/includes/classes/Components/HelpText.php',
+        'Outstand\\WP\\Forms\\Components\\Input' => __DIR__ . '/../..' . '/includes/classes/Components/Input.php',
+        'Outstand\\WP\\Forms\\Components\\Label' => __DIR__ . '/../..' . '/includes/classes/Components/Label.php',
+        'Outstand\\WP\\Forms\\Components\\Textarea' => __DIR__ . '/../..' . '/includes/classes/Components/Textarea.php',
+        'Outstand\\WP\\Forms\\EmailNotification' => __DIR__ . '/../..' . '/includes/classes/EmailNotification.php',
+        'Outstand\\WP\\Forms\\FieldFactory' => __DIR__ . '/../..' . '/includes/classes/FieldFactory.php',
+        'Outstand\\WP\\Forms\\Fields\\AbstractField' => __DIR__ . '/../..' . '/includes/classes/Fields/AbstractField.php',
+        'Outstand\\WP\\Forms\\Fields\\Email' => __DIR__ . '/../..' . '/includes/classes/Fields/Email.php',
+        'Outstand\\WP\\Forms\\Fields\\FieldInterface' => __DIR__ . '/../..' . '/includes/classes/Fields/FieldInterface.php',
+        'Outstand\\WP\\Forms\\Fields\\Number' => __DIR__ . '/../..' . '/includes/classes/Fields/Number.php',
+        'Outstand\\WP\\Forms\\Fields\\Password' => __DIR__ . '/../..' . '/includes/classes/Fields/Password.php',
+        'Outstand\\WP\\Forms\\Fields\\Phone' => __DIR__ . '/../..' . '/includes/classes/Fields/Phone.php',
+        'Outstand\\WP\\Forms\\Fields\\Text' => __DIR__ . '/../..' . '/includes/classes/Fields/Text.php',
+        'Outstand\\WP\\Forms\\Fields\\Textarea' => __DIR__ . '/../..' . '/includes/classes/Fields/Textarea.php',
+        'Outstand\\WP\\Forms\\Fields\\URL' => __DIR__ . '/../..' . '/includes/classes/Fields/URL.php',
+        'Outstand\\WP\\Forms\\FormBlockParser' => __DIR__ . '/../..' . '/includes/classes/FormBlockParser.php',
+        'Outstand\\WP\\Forms\\Plugin' => __DIR__ . '/../..' . '/includes/classes/Plugin.php',
+        'Outstand\\WP\\Forms\\REST\\V1\\AbstractRoute' => __DIR__ . '/../..' . '/includes/classes/REST/V1/AbstractRoute.php',
+        'Outstand\\WP\\Forms\\REST\\V1\\Forms' => __DIR__ . '/../..' . '/includes/classes/REST/V1/Forms.php',
+        'Outstand\\WP\\Forms\\Settings' => __DIR__ . '/../..' . '/includes/classes/Settings.php',
+        'Outstand\\WP\\Forms\\Validation\\Validator' => __DIR__ . '/../..' . '/includes/classes/Validation/Validator.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

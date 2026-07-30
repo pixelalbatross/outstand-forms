@@ -1,16 +1,16 @@
 <?php
 
-namespace Outstand\Forms;
+namespace Outstand\WP\Forms;
 
 use InvalidArgumentException;
-use Outstand\Forms\Fields\Email;
-use Outstand\Forms\Fields\FieldInterface;
-use Outstand\Forms\Fields\Number;
-use Outstand\Forms\Fields\Password;
-use Outstand\Forms\Fields\Phone;
-use Outstand\Forms\Fields\Text;
-use Outstand\Forms\Fields\Textarea;
-use Outstand\Forms\Fields\URL;
+use Outstand\WP\Forms\Fields\Email;
+use Outstand\WP\Forms\Fields\FieldInterface;
+use Outstand\WP\Forms\Fields\Number;
+use Outstand\WP\Forms\Fields\Password;
+use Outstand\WP\Forms\Fields\Phone;
+use Outstand\WP\Forms\Fields\Text;
+use Outstand\WP\Forms\Fields\Textarea;
+use Outstand\WP\Forms\Fields\URL;
 
 class FieldFactory {
 

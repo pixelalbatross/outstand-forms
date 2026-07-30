@@ -1,6 +1,6 @@
 <?php
 
-namespace Outstand\Forms\Components;
+namespace Outstand\WP\Forms\Components;
 
 interface ComponentInterface {
 

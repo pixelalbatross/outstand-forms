@@ -1,9 +1,9 @@
 <?php
 
-namespace Outstand\Forms\REST\V1;
+namespace Outstand\WP\Forms\REST\V1;
 
-use Outstand\Forms\FormBlockParser;
-use Outstand\Forms\Validation\Validator;
+use Outstand\WP\Forms\FormBlockParser;
+use Outstand\WP\Forms\Validation\Validator;
 use WP_Error;
 use WP_REST_Request;
 use WP_REST_Response;

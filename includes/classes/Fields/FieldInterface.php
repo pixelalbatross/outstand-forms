@@ -1,8 +1,8 @@
 <?php
 
-namespace Outstand\Forms\Fields;
+namespace Outstand\WP\Forms\Fields;
 
-use Outstand\Forms\Components\ComponentInterface;
+use Outstand\WP\Forms\Components\ComponentInterface;
 
 interface FieldInterface {
 

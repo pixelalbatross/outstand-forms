@@ -1,8 +1,8 @@
 <?php
 
-namespace Outstand\Forms\Blocks;
+namespace Outstand\WP\Forms\Blocks;
 
-use Outstand\Forms\AbstractModule;
+use Outstand\WP\Forms\AbstractModule;
 
 abstract class AbstractBlock extends AbstractModule {
 

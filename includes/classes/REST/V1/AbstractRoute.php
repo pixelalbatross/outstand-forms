@@ -1,8 +1,8 @@
 <?php
 
-namespace Outstand\Forms\REST\V1;
+namespace Outstand\WP\Forms\REST\V1;
 
-use Outstand\Forms\AbstractModule;
+use Outstand\WP\Forms\AbstractModule;
 
 abstract class AbstractRoute extends AbstractModule {
 

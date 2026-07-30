@@ -1,11 +1,11 @@
 <?php
 
-namespace Outstand\Forms\Fields;
+namespace Outstand\WP\Forms\Fields;
 
-use Outstand\Forms\Components\Label;
-use Outstand\Forms\Components\Error;
-use Outstand\Forms\Components\HelpText;
-use Outstand\Forms\Components\Textarea as TextareaComponent;
+use Outstand\WP\Forms\Components\Label;
+use Outstand\WP\Forms\Components\Error;
+use Outstand\WP\Forms\Components\HelpText;
+use Outstand\WP\Forms\Components\Textarea as TextareaComponent;
 
 class Textarea extends AbstractField {
 

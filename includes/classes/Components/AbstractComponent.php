@@ -1,9 +1,9 @@
 <?php
 
-namespace Outstand\Forms\Components;
+namespace Outstand\WP\Forms\Components;
 
-use Outstand\Forms\Components\ComponentInterface;
-use Outstand\Forms\Fields\FieldInterface;
+use Outstand\WP\Forms\Components\ComponentInterface;
+use Outstand\WP\Forms\Fields\FieldInterface;
 
 abstract class AbstractComponent implements ComponentInterface {
 

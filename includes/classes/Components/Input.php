@@ -1,8 +1,8 @@
 <?php
 
-namespace Outstand\Forms\Components;
+namespace Outstand\WP\Forms\Components;
 
-use Outstand\Forms\Fields\FieldInterface;
+use Outstand\WP\Forms\Fields\FieldInterface;
 
 class Input extends AbstractComponent {
 

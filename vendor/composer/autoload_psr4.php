@@ -6,5 +6,5 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'Outstand\\Forms\\' => array($baseDir . '/includes/classes'),
+    'Outstand\\WP\\Forms\\' => array($baseDir . '/includes/classes'),
 );

@@ -10,7 +10,7 @@
   ],
   "autoload": {
     "psr-4": {
-      "Outstand\\Forms\\": "includes/classes"
+      "Outstand\\WP\\Forms\\": "includes/classes"
     }
   },
   "require": {

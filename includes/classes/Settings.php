@@ -1,6 +1,6 @@
 <?php
 
-namespace Outstand\Forms;
+namespace Outstand\WP\Forms;
 
 class Settings {
 
