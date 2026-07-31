@@ -33,6 +33,7 @@ class Plugin {
 		$modules = [
 			new Blocks\FieldTurnstile(),
 			new REST\V1\Forms(),
+			new EmailNotification(),
 			new Settings(),
 		];
 
