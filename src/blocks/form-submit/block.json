@@ -27,10 +27,8 @@
     "inserter": false,
     "reusable": false,
     "spacing": {
-      "margin": [
-        "top",
-        "bottom"
-      ]
+      "margin": true,
+      "padding": true
     },
     "interactivity": true
   },

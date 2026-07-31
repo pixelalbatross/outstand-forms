@@ -36,11 +36,13 @@
     "html": false,
     "multiple": false,
     "reusable": false,
+    "align": [
+      "wide",
+      "full"
+    ],
     "spacing": {
-      "margin": [
-        "top",
-        "bottom"
-      ]
+      "margin": true,
+      "padding": true
     },
     "interactivity": true
   },

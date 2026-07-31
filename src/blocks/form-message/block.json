@@ -23,6 +23,14 @@
     "lock": false,
     "inserter": false,
     "reusable": false,
+    "align": [
+      "wide",
+      "full"
+    ],
+    "spacing": {
+      "margin": true,
+      "padding": true
+    },
     "interactivity": true
   },
   "editorScript": "file:./index.js",

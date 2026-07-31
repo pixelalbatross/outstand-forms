@@ -13,11 +13,10 @@ $wrapper_attributes = get_block_wrapper_attributes(
 	[
 		'role'                 => 'alert',
 		'data-wp-bind--hidden' => '!context.hasSubmissionError',
+		'data-wp-text'         => 'context.submissionMessage',
 	]
 );
 
 ?>
 
-<div <?php echo $wrapper_attributes; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
-	<p data-wp-text="context.submissionMessage"></p>
-</div>
+<p <?php echo $wrapper_attributes; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>></p>

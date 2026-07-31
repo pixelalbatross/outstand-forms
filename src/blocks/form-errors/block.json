@@ -20,6 +20,22 @@
     "lock": false,
     "inserter": false,
     "reusable": false,
+    "align": [
+      "wide",
+      "full"
+    ],
+    "color": {
+      "background": true,
+      "text": true
+    },
+    "spacing": {
+      "margin": true,
+      "padding": true
+    },
+    "typography": {
+      "fontSize": true,
+      "lineHeight": true
+    },
     "interactivity": true
   },
   "editorScript": "file:./index.js",
