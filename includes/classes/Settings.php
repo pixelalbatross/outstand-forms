@@ -9,7 +9,7 @@ class Settings {
 	 *
 	 * @var string
 	 */
-	const OPTION_NAME = 'os_forms_settings';
+	const OPTION_NAME = 'outstand_forms_settings';
 
 	/**
 	 * Settings page slug.
@@ -65,26 +65,26 @@ class Settings {
 		);
 
 		add_settings_section(
-			'osf_turnstile_section',
+			'outstand_forms_turnstile_section',
 			__( 'Cloudflare Turnstile', 'outstand-forms' ),
 			[ $this, 'render_section_description' ],
 			self::PAGE_SLUG
 		);
 
 		add_settings_field(
-			'osf_turnstile_site_key',
+			'outstand_forms_turnstile_site_key',
 			__( 'Site Key', 'outstand-forms' ),
 			[ $this, 'render_site_key_field' ],
 			self::PAGE_SLUG,
-			'osf_turnstile_section'
+			'outstand_forms_turnstile_section'
 		);
 
 		add_settings_field(
-			'osf_turnstile_secret_key',
+			'outstand_forms_turnstile_secret_key',
 			__( 'Secret Key', 'outstand-forms' ),
 			[ $this, 'render_secret_key_field' ],
 			self::PAGE_SLUG,
-			'osf_turnstile_section'
+			'outstand_forms_turnstile_section'
 		);
 	}
 

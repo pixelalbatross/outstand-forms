@@ -14,7 +14,7 @@ export default function FormFieldsEdit() {
 		className: 'osf-form__fields',
 	});
 
-	const allowedBlocks = applyFilters('osf.form.allowedBlocks', [
+	const allowedBlocks = applyFilters('outstandForms.form.allowedBlocks', [
 		'core/button',
 		'core/buttons',
 		'core/column',

@@ -21,8 +21,8 @@ class FieldTurnstile extends AbstractBlock {
 	 */
 	public function register(): void {
 		add_action( 'wp_enqueue_scripts', [ $this, 'register_script' ], 10 );
-		add_filter( 'osf_rest_form_submit_args', [ $this, 'register_form_submit_args' ] );
-		add_filter( 'osf_form_pre_submission_check', [ $this, 'verify_form_submission' ], 10, 2 );
+		add_filter( 'outstand_forms_rest_form_submit_args', [ $this, 'register_form_submit_args' ] );
+		add_filter( 'outstand_forms_form_pre_submission_check', [ $this, 'verify_form_submission' ], 10, 2 );
 	}
 
 	/**

@@ -24,7 +24,7 @@ $wrapper_attributes = get_block_wrapper_attributes(
 ?>
 
 <div <?php echo $wrapper_attributes; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
-	<?php do_action( 'osf_before_fields', $form_id ); ?>
+	<?php do_action( 'outstand_forms_before_fields', $form_id ); ?>
 	<?php echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-	<?php do_action( 'osf_after_fields', $form_id ); ?>
+	<?php do_action( 'outstand_forms_after_fields', $form_id ); ?>
 </div>

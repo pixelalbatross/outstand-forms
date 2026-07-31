@@ -11,7 +11,7 @@ abstract class AbstractRoute extends AbstractModule {
 	 *
 	 * @var string
 	 */
-	protected string $namespace = 'osf/v1';
+	protected string $namespace = 'outstand-forms/v1';
 
 	/**
 	 * Route base.

@@ -62,7 +62,7 @@ class Forms extends AbstractRoute {
 		 * @param array $additional_args Additional endpoint arguments.
 		 * @return array
 		 */
-		$additional_args = apply_filters( 'osf_rest_form_submit_args', [] );
+		$additional_args = apply_filters( 'outstand_forms_rest_form_submit_args', [] );
 
 		return array_merge( $additional_args, $args );
 	}
@@ -106,7 +106,7 @@ class Forms extends AbstractRoute {
 		 * @param WP_REST_Request $request The REST request.
 		 * @return true|WP_Error
 		 */
-		$pre_check = apply_filters( 'osf_form_pre_submission_check', true, $request );
+		$pre_check = apply_filters( 'outstand_forms_form_pre_submission_check', true, $request );
 
 		if ( is_wp_error( $pre_check ) ) {
 			return $pre_check;
@@ -148,7 +148,7 @@ class Forms extends AbstractRoute {
 		 * @param array  $sanitized_data The sanitized form data.
 		 * @param array  $form_data      The parsed form data.
 		 */
-		do_action( 'osf_form_submitted', $form_id, $post_id, $sanitized_data, $form_data );
+		do_action( 'outstand_forms_form_submitted', $form_id, $post_id, $sanitized_data, $form_data );
 
 		$response = [
 			'success' => true,

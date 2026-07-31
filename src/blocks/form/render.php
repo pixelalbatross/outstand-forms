@@ -17,7 +17,7 @@ $form_id     = $attributes['formId'];
 $form_action = $attributes['formAction'] ?? '';
 
 if ( empty( $form_action ) ) {
-	$form_action = rest_url( 'osf/v1/forms/submit' );
+	$form_action = rest_url( 'outstand-forms/v1/forms/submit' );
 }
 
 $wrapper_classes = [
@@ -58,8 +58,8 @@ wp_interactivity_config(
 			 * @param string $form_id The form ID.
 			 * @return string
 			 */
-			'error'   => apply_filters(
-				'osf_submission_error_message',
+			'error' => apply_filters(
+				'outstand_forms_submission_error_message',
 				__( 'There was a problem submitting the form. Please try again.', 'outstand-forms' ),
 				$form_id
 			),
@@ -78,7 +78,7 @@ wp_interactivity_config(
 		 * @return array
 		 */
 		'validationMessages' => apply_filters(
-			'osf_validation_messages',
+			'outstand_forms_validation_messages',
 			[
 				'required'  => __( 'This field is required.', 'outstand-forms' ),
 				'pattern'   => __( 'The value does not match the expected format.', 'outstand-forms' ),
@@ -100,7 +100,6 @@ wp_interactivity_config(
 	<?php echo $wrapper_attributes; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 	<?php echo $context; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 >
-
 	<?php echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 
 	<input type="hidden" name="form_id" value="<?php echo esc_attr( $form_id ); ?>">

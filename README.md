@@ -67,12 +67,12 @@ You can style forms using your theme’s styles or add custom styles targeting t
 
 ## Hooks & Extensibility
 
-### `osf_validation_messages`
+### `outstand_forms_validation_messages`
 
 Override or extend the default validation messages passed to the Interactivity API:
 
 ```php
-add_filter( 'osf_validation_messages', function( $messages, $form_id ) {
+add_filter( 'outstand_forms_validation_messages', function( $messages, $form_id ) {
     $messages['required'] = 'Custom required message.';
     return $messages;
 }, 10, 2 );
