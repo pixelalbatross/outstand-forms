@@ -99,6 +99,7 @@ class Input extends AbstractComponent {
 			data-wp-on--change="actions.handleFieldChange"
 			data-wp-init--register="callbacks.registerField"
 			data-wp-on--osf-field-validate="actions.handleFieldValidate"
+			data-wp-on--osf-field-server-error="actions.handleFieldServerErrors"
 		/>';
 
 		$replacements = array_merge(

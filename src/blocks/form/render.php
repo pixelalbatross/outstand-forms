@@ -28,6 +28,7 @@ $wrapper_attributes = get_block_wrapper_attributes(
 		'novalidate'                   => '',
 		'data-wp-interactive'          => 'osf/form',
 		'data-wp-on--submit'           => 'actions.handleFormSubmit',
+		'data-wp-class--is-submitting' => 'context.isSubmitting',
 	]
 );
 
@@ -35,13 +36,11 @@ wp_interactivity_state( 'osf/form' );
 
 $context = wp_interactivity_data_wp_context(
 	[
-		'formFields' => [],
-	]
-);
-
-wp_interactivity_config(
-	'osf/form',
-	[
+		'formFields'         => [],
+		'isSubmitting'       => false,
+		'isSubmitted'        => false,
+		'hasSubmissionError' => false,
+		'submissionMessage'  => '',
 		'submissionMessages' => [
 			/**
 			 * Filters the form submission error message.

@@ -1,19 +1,23 @@
 /**
  * WordPress dependencies
  */
-import {
-	store,
-	getContext,
-	getElement,
-	getConfig,
-	withSyncEvent,
-	withScope,
-} from '@wordpress/interactivity';
+import { store, getContext, getElement, withSyncEvent, withScope } from '@wordpress/interactivity';
 
 /**
  * Internal dependencies
  */
 import { validate } from './../../validation';
+
+/**
+ * Flag the form as failed and surface the generic error message.
+ *
+ * @param {Object} context            The form context.
+ * @param {Object} submissionMessages The submission messages.
+ */
+function setSubmissionError(context, submissionMessages) {
+	context.hasSubmissionError = true;
+	context.submissionMessage = submissionMessages.error || '';
+}
 
 const { state, actions } = store('osf/form', {
 	state: {
@@ -41,23 +45,13 @@ const { state, actions } = store('osf/form', {
 		 * @return {string} The error message.
 		 */
 		get fieldErrorMessage() {
-			const { isValid, validationErrors } = getContext();
+			const { isValid, validationErrors, validationRules } = getContext();
 
-			// Skip if there are no validation errors.
-			if (isValid) {
+			if (isValid || !validationErrors?.length) {
 				return '';
 			}
 
-			const { validationMessages = {} } = getConfig('osf/form');
-
-			// Skip if there are no validation messages.
-			if (!validationMessages) {
-				return '';
-			}
-
-			const context = getContext();
-			const { validationRules } = context;
-
+			const { validationMessages = {} } = getContext('osf/form');
 			const error = validationErrors[0];
 
 			// Skip if the error is not in the validation messages.
@@ -78,6 +72,8 @@ const { state, actions } = store('osf/form', {
 					break;
 				case 'max':
 					message = message.replace('{{max}}', validationRules.max);
+					break;
+				default:
 					break;
 			}
 
@@ -121,7 +117,7 @@ const { state, actions } = store('osf/form', {
 		 */
 		handleFieldValidate() {
 			const context = getContext();
-			const { fieldId, value, validationRules } = context;
+			const { fieldName, value, validationRules } = context;
 			const { isValid, errors } = validate(value, validationRules);
 
 			context.isValid = isValid;
@@ -134,10 +130,31 @@ const { state, actions } = store('osf/form', {
 				formContext.formFields = {};
 			}
 
-			formContext.formFields[fieldId] = isValid;
+			formContext.formFields[fieldName] = isValid;
 
 			const event = new CustomEvent('osf-field-validated');
 			ref.dispatchEvent(event);
+		},
+		/**
+		 * Handle server-side validation errors for the field.
+		 *
+		 * Absorbs errors returned by the REST endpoint into the field's own
+		 * context so the field has a single source of validity.
+		 *
+		 * @param {CustomEvent} event The event carrying the failed rule names.
+		 */
+		handleFieldServerErrors(event) {
+			const context = getContext();
+			const { fieldName } = context;
+			const errors = event.detail?.errors || [];
+
+			context.isValid = false;
+			context.validationErrors = errors;
+
+			const formContext = getContext('osf/form');
+			if (formContext.formFields && fieldName in formContext.formFields) {
+				formContext.formFields[fieldName] = false;
+			}
 		},
 		/**
 		 * Handle the form submit event.
@@ -145,22 +162,41 @@ const { state, actions } = store('osf/form', {
 		handleFormSubmit: withSyncEvent((ev) => {
 			ev.preventDefault();
 
+			const context = getContext('osf/form');
+
+			// Guard against double-submit. Set synchronously, before the async
+			// validation round trip, so a second rapid submit is blocked even
+			// while validation is still in flight.
+			if (context.isSubmitting) {
+				return;
+			}
+
+			context.isSubmitting = true;
+
 			const { ref: form } = getElement();
 
 			const handleValidated = withScope(() => {
 				if (state.isFormValid) {
-					form.submit();
+					actions.submitForm();
+				} else {
+					// Validation completed but the form isn't valid, so
+					// submitForm() (and its own reset) never runs.
+					context.isSubmitting = false;
 				}
 			});
 
 			form.addEventListener('osf-form-validated', handleValidated, { once: true });
 
-			actions.validateForm().then(() => {
-				const event = new CustomEvent('osf-form-validated');
-				form.dispatchEvent(event);
-			}).catch(() => {
-				form.removeEventListener('osf-form-validated', handleValidated);
-			});
+			actions
+				.validateForm()
+				.then(() => {
+					const event = new CustomEvent('osf-form-validated');
+					form.dispatchEvent(event);
+				})
+				.catch(() => {
+					form.removeEventListener('osf-form-validated', handleValidated);
+					context.isSubmitting = false;
+				});
 		}),
 		/**
 		 * Submit the form.
@@ -168,12 +204,11 @@ const { state, actions } = store('osf/form', {
 		async submitForm() {
 			const context = getContext('osf/form');
 			const { ref: form } = getElement();
-			const { submissionMessages = {} } = getConfig('osf/form');
+			const { submissionMessages = {} } = context;
 
 			// Reset state.
 			context.hasSubmissionError = false;
 			context.submissionMessage = '';
-			context.serverErrors = {};
 			context.isSubmitting = true;
 
 			try {
@@ -189,8 +224,31 @@ const { state, actions } = store('osf/form', {
 				});
 
 				const data = await response.json();
+
+				if (response.ok) {
+					context.isSubmitted = true;
+					context.submissionMessage = data.message || '';
+				} else {
+					setSubmissionError(context, submissionMessages);
+
+					if (response.status === 400 && data.data?.errors) {
+						Object.entries(data.data.errors).forEach(([fieldName, errors]) => {
+							const fieldElement = form.querySelector(`[name="${fieldName}"]`);
+							if (!fieldElement) {
+								return;
+							}
+
+							const event = new CustomEvent('osf-field-server-error', {
+								detail: { errors: Array.isArray(errors) ? errors : [errors] },
+							});
+							fieldElement.dispatchEvent(event);
+						});
+					}
+				}
 			} catch {
+				setSubmissionError(context, submissionMessages);
 			} finally {
+				context.isSubmitting = false;
 			}
 		},
 		/**
@@ -202,10 +260,10 @@ const { state, actions } = store('osf/form', {
 			const { formFields } = getContext('osf/form');
 			const { ref: form } = getElement();
 
-			const fieldIds = Object.keys(formFields || {});
-			const validations = fieldIds.map((fieldId) => {
+			const fieldNames = Object.keys(formFields || {});
+			const validations = fieldNames.map((fieldName) => {
 				return new Promise((resolve) => {
-					const fieldElement = form.querySelector(`[id="${fieldId}"]`);
+					const fieldElement = form.querySelector(`[name="${fieldName}"]`);
 					if (!fieldElement) {
 						return resolve();
 					}
@@ -235,14 +293,14 @@ const { state, actions } = store('osf/form', {
 		 */
 		registerField() {
 			const context = getContext();
-			const { fieldId, isValid } = context;
+			const { fieldName, isValid } = context;
 
 			const formContext = getContext('osf/form');
 			if (!formContext.formFields) {
 				formContext.formFields = {};
 			}
 
-			formContext.formFields[fieldId] = isValid;
+			formContext.formFields[fieldName] = isValid;
 		},
 		/**
 		 * Initialize the field mask.
@@ -261,8 +319,7 @@ const { state, actions } = store('osf/form', {
 				const { default: Inputmask } = await import('inputmask');
 				const im = new Inputmask(inputmask);
 				im.mask(ref);
-			} catch {
-			}
+			} catch {}
 		},
 	},
 });
