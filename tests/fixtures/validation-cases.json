@@ -1,0 +1,170 @@
+[
+	{
+		"description": "required fails on empty string",
+		"value": "",
+		"rules": { "required": true },
+		"is_valid": false,
+		"errors": [ "required" ]
+	},
+	{
+		"description": "required fails on whitespace-only string",
+		"value": "   ",
+		"rules": { "required": true },
+		"is_valid": false,
+		"errors": [ "required" ]
+	},
+	{
+		"description": "required passes on value",
+		"value": "hello",
+		"rules": { "required": true },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "disabled required rule is skipped",
+		"value": "",
+		"rules": { "required": false },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "email passes on valid address",
+		"value": "user@example.com",
+		"rules": { "email": true },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "email fails on missing domain",
+		"value": "user@",
+		"rules": { "email": true },
+		"is_valid": false,
+		"errors": [ "email" ]
+	},
+	{
+		"description": "email passes on empty value (only required rejects empty)",
+		"value": "",
+		"rules": { "email": true },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "url passes on https address",
+		"value": "https://example.com/path",
+		"rules": { "url": true },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "url fails without scheme",
+		"value": "example.com",
+		"rules": { "url": true },
+		"is_valid": false,
+		"errors": [ "url" ]
+	},
+	{
+		"description": "pattern is anchored: partial match fails",
+		"value": "abc123",
+		"rules": { "pattern": "[0-9]+" },
+		"is_valid": false,
+		"errors": [ "pattern" ]
+	},
+	{
+		"description": "pattern is anchored: full match passes",
+		"value": "12345",
+		"rules": { "pattern": "[0-9]+" },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "pattern passes on empty value",
+		"value": "",
+		"rules": { "pattern": "[0-9]+" },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "minLength fails below the minimum",
+		"value": "ab",
+		"rules": { "minLength": 3 },
+		"is_valid": false,
+		"errors": [ "minLength" ]
+	},
+	{
+		"description": "minLength passes at the boundary",
+		"value": "abc",
+		"rules": { "minLength": 3 },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "maxLength fails above the maximum",
+		"value": "abcdef",
+		"rules": { "maxLength": 5 },
+		"is_valid": false,
+		"errors": [ "maxLength" ]
+	},
+	{
+		"description": "maxLength passes at the boundary",
+		"value": "abcde",
+		"rules": { "maxLength": 5 },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "min fails below the minimum",
+		"value": "5",
+		"rules": { "min": 10 },
+		"is_valid": false,
+		"errors": [ "min" ]
+	},
+	{
+		"description": "min passes at the boundary",
+		"value": "10",
+		"rules": { "min": 10 },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "max fails above the maximum",
+		"value": "100",
+		"rules": { "max": 99 },
+		"is_valid": false,
+		"errors": [ "max" ]
+	},
+	{
+		"description": "max passes at the boundary",
+		"value": "99",
+		"rules": { "max": 99 },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "invalid regex pattern fails closed",
+		"value": "anything",
+		"rules": { "pattern": "((" },
+		"is_valid": false,
+		"errors": [ "pattern" ]
+	},
+	{
+		"description": "unknown rules are ignored",
+		"value": "anything",
+		"rules": { "nonexistentRule": true },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "multiple failing rules report each rule name",
+		"value": "",
+		"rules": { "required": true, "minLength": 3 },
+		"is_valid": false,
+		"errors": [ "required" ]
+	},
+	{
+		"description": "combined rules pass together",
+		"value": "user@example.com",
+		"rules": { "required": true, "email": true, "maxLength": 50 },
+		"is_valid": true,
+		"errors": []
+	}
+]
