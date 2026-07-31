@@ -5,7 +5,7 @@
   "contributors": [
     {
       "name": "Sérgio Santos",
-      "url": "https://s3rgiosan.dev"
+      "homepage": "https://s3rgiosan.dev"
     }
   ],
   "license": "GPL-3.0-or-later",
@@ -17,9 +17,18 @@
     "lint:js": "wp-scripts lint-js",
     "packages-update": "wp-scripts packages-update",
     "plugin-zip": "wp-scripts plugin-zip",
-    "start": "wp-scripts start --experimental-modules"
+    "start": "wp-scripts start --experimental-modules",
+    "test:e2e": "wp-scripts test-playwright",
+    "test:js": "wp-scripts test-unit-js",
+    "test:setup": "npm run wp-env start",
+    "test:unit": "wp-env run tests-cli --env-cwd='wp-content/plugins/outstand-forms' vendor/bin/phpunit --testsuite=default",
+    "wp-env": "wp-env",
+    "wp-env:clean": "wp-env clean all"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "@wordpress/e2e-test-utils-playwright": "^1.50.0",
+    "@wordpress/env": "^10.0.0",
     "@wordpress/scripts": "^30.12.0"
   },
   "dependencies": {

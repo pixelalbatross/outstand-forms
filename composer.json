@@ -19,11 +19,22 @@
     "yahnis-elsts/plugin-update-checker": "^5.5"
   },
   "require-dev": {
-    "pixelalbatross/coding-standards": "dev-main"
+    "phpunit/phpunit": "^9.6",
+    "pixelalbatross/coding-standards": "dev-main",
+    "yoast/phpunit-polyfills": "^1.1"
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Outstand\\WP\\Forms\\Tests\\Unit\\": "tests/php/unit/"
+    }
   },
   "scripts": {
     "lint": "phpcs .",
-    "lint-fix": "phpcbf ."
+    "lint-fix": "phpcbf .",
+    "test": "phpunit"
+  },
+  "extra": {
+    "installer-name": "outstand-forms"
   },
   "config": {
     "sort-packages": true,

@@ -21,3 +21,14 @@ package-lock.json
 *.swp
 Thumbs.db
 Desktop.ini
+
+#---------------------------
+# Working notes (not shipped)
+#---------------------------
+/PLAN.md
+/PROGRESS.md
+/REVIEW.md
+/CODE-REVIEW.md
+.wp-env.override.json
+.phpunit.result.cache
+artifacts/

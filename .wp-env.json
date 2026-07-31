@@ -1,0 +1,25 @@
+{
+	"core": "WordPress/WordPress#master",
+	"phpVersion": "8.2",
+	"plugins": [
+		"."
+	],
+	"mappings": {
+		"wp-content/plugins/outstand-forms": "."
+	},
+	"config": {
+		"WP_DEBUG": true,
+		"WP_DEBUG_LOG": true,
+		"SCRIPT_DEBUG": true
+	},
+	"lifecycleScripts": {
+		"afterStart": "npx wp-env run cli wp theme activate twentytwentytwo && npx wp-env run tests-cli wp theme activate twentytwentytwo"
+	},
+	"env": {
+		"tests": {
+			"mappings": {
+				"wp-content/mu-plugins/outstand-forms-e2e.php": "./tests/e2e/mu-plugins/outstand-forms-e2e.php"
+			}
+		}
+	}
+}
