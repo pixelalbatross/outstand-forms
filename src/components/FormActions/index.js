@@ -22,11 +22,7 @@ export const ACTION_LABELS = {
 	user_notification: __('User Email', 'outstand-forms'),
 };
 
-export default function FormActions({
-	actions,
-	onUpdateActions,
-	emailFieldOptions,
-}) {
+export default function FormActions({ actions, onUpdateActions, emailFieldOptions }) {
 	const [editingIndex, setEditingIndex] = useState(null);
 
 	const onToggle = (index, enabled) => {
