@@ -14,6 +14,7 @@ import {
 	InspectorAdvancedControls,
 } from '@wordpress/block-editor';
 import {
+	Notice,
 	PanelBody,
 	SelectControl,
 	TextControl,
@@ -28,9 +29,10 @@ import { __ } from '@wordpress/i18n';
  * Internal dependencies
  */
 import { labelPositionOptions, helpTextPositionOptions, autocompleteOptions } from '../../options';
+import { useIsDuplicateFieldName } from '../../hooks/useIsDuplicateFieldName';
 import Field from '../../fields';
 
-export default function FieldTextareaEdit({ attributes, setAttributes, context }) {
+export default function FieldTextareaEdit({ attributes, setAttributes, context, clientId }) {
 	const {
 		'osf/labelPosition': defaultLabelPosition,
 		'osf/helpTextPosition': defaultHelpTextPosition,
@@ -54,6 +56,8 @@ export default function FieldTextareaEdit({ attributes, setAttributes, context }
 		helpText,
 		helpTextPosition = defaultHelpTextPosition,
 	} = attributes;
+
+	const isDuplicateFieldName = useIsDuplicateFieldName(clientId, attributes);
 
 	const blockProps = useBlockProps({
 		className: clsx(
@@ -247,6 +251,14 @@ export default function FieldTextareaEdit({ attributes, setAttributes, context }
 					__next40pxDefaultSize
 					__nextHasNoMarginBottom
 				/>
+				{isDuplicateFieldName && (
+					<Notice status="warning" isDismissible={false}>
+						{__(
+							'Another field in this form uses the same name. Only one value will be submitted.',
+							'outstand-forms',
+						)}
+					</Notice>
+				)}
 				<SelectControl
 					label={__('Autocomplete', 'outstand-forms')}
 					value={autocomplete}
