@@ -20,17 +20,9 @@ if ( empty( $form_action ) ) {
 	$form_action = rest_url( 'outstand-forms/v1/forms/submit' );
 }
 
-$wrapper_classes = [
-	'osf-form',
-	"osf-form--{$form_id}",
-];
-$wrapper_classes = array_filter( $wrapper_classes );
-$wrapper_classes = array_map( 'sanitize_html_class', $wrapper_classes );
-
 $wrapper_attributes = get_block_wrapper_attributes(
 	[
 		'id'                           => sprintf( 'osf-%s', $form_id ),
-		'class'                        => implode( ' ', $wrapper_classes ),
 		'method'                       => 'post',
 		'action'                       => esc_url( $form_action ),
 		'novalidate'                   => '',

@@ -1,10 +1,5 @@
 /* eslint-disable @wordpress/no-unsafe-wp-apis */
 /**
- * External dependencies
- */
-import clsx from 'clsx';
-
-/**
  * WordPress dependencies
  */
 import {
@@ -85,9 +80,7 @@ function FormEditContainer({ attributes, setAttributes, clientId }) {
 
 	useFieldId(attributes, setAttributes, fieldBlocks);
 
-	const blockProps = useBlockProps({
-		className: clsx('osf-form', `osf-form--${formId}`),
-	});
+	const blockProps = useBlockProps();
 
 	const innerBlocksProps = useInnerBlocksProps(blockProps, {
 		__experimentalCaptureToolbars: true,

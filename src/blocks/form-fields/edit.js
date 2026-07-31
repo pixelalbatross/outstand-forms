@@ -10,9 +10,7 @@ import { applyFilters } from '@wordpress/hooks';
 import { DEFAULT_BLOCK, PRIORITIZED_INSERTER_BLOCKS } from './constants';
 
 export default function FormFieldsEdit() {
-	const blockProps = useBlockProps({
-		className: 'osf-form__fields',
-	});
+	const blockProps = useBlockProps();
 
 	const allowedBlocks = applyFilters('outstandForms.form.allowedBlocks', [
 		'core/button',
