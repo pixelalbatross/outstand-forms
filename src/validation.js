@@ -76,6 +76,9 @@ function url(value) {
 /**
  * Validate that a value matches a regex pattern.
  *
+ * The pattern must match the entire value, mirroring the HTML `pattern`
+ * attribute semantics and the server-side validator.
+ *
  * Compiled RegExp objects are cached to avoid repeated construction.
  *
  * @param {string} value      The value to validate.
@@ -90,7 +93,7 @@ function pattern(value, patternStr = '') {
 	try {
 		let regex = regexCache.get(patternStr);
 		if (!regex) {
-			regex = new RegExp(patternStr);
+			regex = new RegExp(`^(?:${patternStr})$`);
 			regexCache.set(patternStr, regex);
 		}
 		return regex.test(value);
@@ -188,8 +191,7 @@ const validators = {
  *
  * @param {*}      value The value to validate.
  * @param {Object} rules The validation rules keyed by validator name.
- * @return {{ isValid: boolean, errors: string[] }} Result with a boolean and an
- *                                                  array of failed rule names.
+ * @return {{ isValid: boolean, errors: string[] }} Result with a boolean and an array of failed rule names.
  */
 export function validate(value, rules = {}) {
 	const errors = [];

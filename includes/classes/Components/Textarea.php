@@ -14,16 +14,20 @@ class Textarea extends AbstractComponent {
 		$label_id   = $this->get_field_label_id();
 		$attributes = $this->get_attributes();
 
+		// Constraint attributes derive from the same validation rules used by
+		// the client- and server-side validators, so the three surfaces agree.
+		$rules = $this->field->get_validation_rules();
+
 		$default_value = $attributes['defaultValue'] ?? '';
-		$required      = $attributes['required'] ?? false;
 		$placeholder   = $attributes['placeholder'] ?? '';
 		$autocomplete  = $attributes['autocomplete'] ?? '';
-		$min_length    = $attributes['minLength'] ?? 0;
-		$max_length    = $attributes['maxLength'] ?? 0;
 		$rows          = $attributes['rows'] ?? 2;
 		$cols          = $attributes['cols'] ?? 20;
 		$mask          = $attributes['mask'] ?? '';
 		$aria_label    = $attributes['ariaLabel'] ?? '';
+		$required      = ! empty( $rules['required'] );
+		$min_length    = $rules['minLength'] ?? 0;
+		$max_length    = $rules['maxLength'] ?? 0;
 
 		$conditional_attrs = [
 			'{required}'        => $required ? 'required' : '',

@@ -180,7 +180,7 @@ class Forms extends AbstractRoute {
 			$sanitized[ $field_name ] = match ( $type ) {
 				'email'    => sanitize_email( $value ),
 				'url'      => esc_url_raw( $value ),
-				'number'   => is_numeric( $value ) ? (float) $value : 0,
+				'number'   => is_numeric( $value ) ? (float) $value : null,
 				'textarea' => sanitize_textarea_field( $value ),
 				default    => sanitize_text_field( $value ),
 			};

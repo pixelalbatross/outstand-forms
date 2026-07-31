@@ -224,6 +224,9 @@ class Validator {
 	/**
 	 * Validate against a regex pattern.
 	 *
+	 * The pattern must match the entire value, mirroring the HTML `pattern`
+	 * attribute semantics and the client-side validator in src/validation.js.
+	 *
 	 * @param mixed $value  The value.
 	 * @param array $params Parameters (unused).
 	 * @param mixed $config Rule config (regex pattern).
@@ -239,6 +242,6 @@ class Validator {
 
 		// Suppress warnings from invalid regex.
 		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-		return (bool) @preg_match( $delimiter . $config . $delimiter, (string) $value );
+		return (bool) @preg_match( $delimiter . '^(?:' . $config . ')$' . $delimiter, (string) $value );
 	}
 }

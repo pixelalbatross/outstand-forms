@@ -34,18 +34,25 @@ class Input extends AbstractComponent {
 		$label_id   = $this->get_field_label_id();
 		$attributes = $this->get_attributes();
 
+		// Constraint attributes derive from the same validation rules used by
+		// the client- and server-side validators, so the three surfaces agree.
+		$rules = $this->field->get_validation_rules();
+
 		$default_value = $attributes['defaultValue'] ?? '';
-		$required      = $attributes['required'] ?? false;
 		$placeholder   = $attributes['placeholder'] ?? '';
 		$autocomplete  = $attributes['autocomplete'] ?? '';
-		$min_length    = $attributes['minLength'] ?? 0;
-		$max_length    = $attributes['maxLength'] ?? 0;
-		$step          = $attributes['step'] ?? 1;
-		$min           = $attributes['min'] ?? 0;
-		$max           = $attributes['max'] ?? 0;
-		$pattern       = $attributes['pattern'] ?? '';
-		$mask          = $attributes['mask'] ?? '';
 		$aria_label    = $attributes['ariaLabel'] ?? '';
+		$required      = ! empty( $rules['required'] );
+		$min_length    = $rules['minLength'] ?? 0;
+		$max_length    = $rules['maxLength'] ?? 0;
+		$pattern       = $rules['pattern'] ?? '';
+		$min           = $rules['min'] ?? null;
+		$max           = $rules['max'] ?? null;
+
+		$is_number     = 'number' === $this->input_type;
+		$supports_mask = ! in_array( $this->input_type, [ 'number', 'email', 'url' ], true );
+		$step          = $is_number ? ( $attributes['step'] ?? 1 ) : 0;
+		$mask          = $supports_mask ? ( $attributes['mask'] ?? '' ) : '';
 
 		$conditional_attrs = [
 			'{required}'        => $required ? 'required' : '',
@@ -53,9 +60,9 @@ class Input extends AbstractComponent {
 			'{autocomplete}'    => $autocomplete ? sprintf( 'autocomplete="%s"', esc_attr( $autocomplete ) ) : '',
 			'{min_length}'      => $min_length ? sprintf( 'minlength="%d"', esc_attr( $min_length ) ) : '',
 			'{max_length}'      => $max_length ? sprintf( 'maxlength="%d"', esc_attr( $max_length ) ) : '',
-			'{step}'            => '',
-			'{min}'             => '',
-			'{max}'             => '',
+			'{step}'            => $step ? sprintf( 'step="%s"', esc_attr( $step ) ) : '',
+			'{min}'             => null !== $min ? sprintf( 'min="%s"', esc_attr( $min ) ) : '',
+			'{max}'             => null !== $max ? sprintf( 'max="%s"', esc_attr( $max ) ) : '',
 			'{pattern}'         => $pattern ? sprintf( 'pattern="%s"', esc_attr( $pattern ) ) : '',
 			'{mask_attribute}'  => $mask ? sprintf( 'data-inputmask="\'mask\': \'%s\'"', esc_attr( $mask ) ) : '',
 			'{mask_directive}'  => $mask ? 'data-wp-init--mask="callbacks.initMask"' : '',
@@ -63,29 +70,6 @@ class Input extends AbstractComponent {
 			'{aria_label}'      => $aria_label ? sprintf( 'aria-label="%s"', esc_attr( $aria_label ) ) : '',
 			'{aria_labelledby}' => $label_id ? sprintf( 'aria-labelledby="%s"', esc_attr( $label_id ) ) : '',
 		];
-
-		switch ( $this->input_type ) {
-			case 'number':
-				$conditional_attrs['{min_length}']     = '';
-				$conditional_attrs['{max_length}']     = '';
-				$conditional_attrs['{step}']           = $step ? sprintf( 'step="%d"', esc_attr( $step ) ) : '';
-				$conditional_attrs['{min}']            = $min ? sprintf( 'min="%d"', esc_attr( $min ) ) : '';
-				$conditional_attrs['{max}']            = $max ? sprintf( 'max="%d"', esc_attr( $max ) ) : '';
-				$conditional_attrs['{pattern}']        = '';
-				$conditional_attrs['{mask_attribute}'] = '';
-				$conditional_attrs['{mask_directive}'] = '';
-				break;
-
-			case 'email':
-				$conditional_attrs['{mask_attribute}'] = '';
-				$conditional_attrs['{mask_directive}'] = '';
-				break;
-
-			case 'url':
-				$conditional_attrs['{mask_attribute}'] = '';
-				$conditional_attrs['{mask_directive}'] = '';
-				break;
-		}
 
 		$template = '<input
 			type="{type}"
