@@ -24,11 +24,11 @@ class Plugin {
 	}
 
 	/**
-	 * Setup the plugin.
+	 * Enable the plugin.
 	 *
 	 * @return void
 	 */
-	public function setup(): void {
+	public function enable(): void {
 
 		$modules = [
 			new Blocks\FieldTurnstile(),
