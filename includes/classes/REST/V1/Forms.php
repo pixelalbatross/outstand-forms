@@ -82,6 +82,12 @@ class Forms extends AbstractRoute {
 		// Remove internal parameters.
 		unset( $params['form_id'], $params['post_id'], $params['_wpnonce'] );
 
+		$rate_limit_check = $this->check_rate_limit( $form_id );
+
+		if ( is_wp_error( $rate_limit_check ) ) {
+			return $rate_limit_check;
+		}
+
 		// Get field configurations and form attributes by parsing block content.
 		$parser    = new FormBlockParser();
 		$form_data = $parser->extract_form_data( $form_id, $post_id );
@@ -187,5 +193,58 @@ class Forms extends AbstractRoute {
 		}
 
 		return $sanitized;
+	}
+
+	/**
+	 * Check the per-client submission rate limit.
+	 *
+	 * Soft limit backed by a transient keyed by client IP. The public submit
+	 * endpoint is otherwise unauthenticated, so this caps abuse when no
+	 * anti-spam integration (e.g. Turnstile) is configured.
+	 *
+	 * @param string $form_id The form ID.
+	 * @return true|WP_Error True to continue, WP_Error (429) when rate limited.
+	 */
+	protected function check_rate_limit( string $form_id ): bool|WP_Error {
+
+		/**
+		 * Filters the maximum form submissions allowed per client IP per minute.
+		 *
+		 * Return 0 (or a negative number) to disable rate limiting.
+		 *
+		 * @param int    $max_submissions The maximum submissions per minute. Default 5.
+		 * @param string $form_id         The form ID.
+		 * @return int
+		 */
+		$max_submissions = apply_filters( 'outstand_forms_rate_limit', 5, $form_id );
+
+		if ( $max_submissions < 1 ) {
+			return true;
+		}
+
+		$client_ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+
+		if ( '' === $client_ip ) {
+			return true;
+		}
+
+		// Read-then-write is not atomic, so concurrent submissions can read the
+		// same count and undercount a burst. Counting is therefore approximate;
+		// an exact limit would need wp_cache_incr(), which is only atomic when a
+		// persistent object cache is present.
+		$transient_key = 'outstand_forms_rl_' . md5( $client_ip );
+		$attempts      = (int) get_transient( $transient_key );
+
+		if ( $attempts >= $max_submissions ) {
+			return new WP_Error(
+				'rate_limited',
+				__( 'Too many submissions. Please try again in a minute.', 'outstand-forms' ),
+				[ 'status' => 429 ]
+			);
+		}
+
+		set_transient( $transient_key, $attempts + 1, MINUTE_IN_SECONDS );
+
+		return true;
 	}
 }
