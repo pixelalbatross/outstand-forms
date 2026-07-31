@@ -17,6 +17,9 @@ Outstand Forms is a WordPress plugin for building forms using the Block Editor. 
 - Accessible markup with proper `aria` attributes.
 - Lightweight and extensible.
 
+> [!NOTE]
+> Form submission requires JavaScript. Forms are progressively rendered on the server, but the submit flow posts to the REST API via the Interactivity API — with JavaScript disabled the form cannot be submitted.
+
 ## Installation
 
 ### Manual Installation
@@ -33,7 +36,7 @@ To include this plugin as a dependency in your Composer-managed WordPress projec
 1. Add the plugin to your project using the following command:
 
 ```bash
-composer require s3rgiosan/outstand-forms
+composer require outstand/forms
 ```
 
 2. Run `composer install` to install the plugin.
@@ -63,7 +66,7 @@ Example:
 
 ## Styling
 
-You can style forms using your theme’s styles or add custom styles targeting the `.osf-form`, `.osf-field`, and `.osf-field__input` classes.
+You can style forms using your theme’s styles or add custom styles targeting the `.wp-block-osf-form`, `.osf-field`, and `.osf-field__input` classes.
 
 ## Hooks & Extensibility
 
@@ -76,6 +79,52 @@ add_filter( 'outstand_forms_validation_messages', function( $messages, $form_id 
     $messages['required'] = 'Custom required message.';
     return $messages;
 }, 10, 2 );
+```
+
+### `outstand_forms_form_submitted`
+
+Fires after a form is submitted and validated successfully:
+
+```php
+add_action( 'outstand_forms_form_submitted', function( $form_id, $post_id, $sanitized_data, $form_data ) {
+    // Store submission, send email, trigger integrations, etc.
+}, 10, 4 );
+```
+
+### `outstand_forms_rate_limit`
+
+Adjust (or disable) the per-IP submission rate limit — default 5 submissions per minute:
+
+```php
+add_filter( 'outstand_forms_rate_limit', function( $max_submissions, $form_id ) {
+    return 10; // Return 0 to disable rate limiting.
+}, 10, 2 );
+```
+
+### Content Actions
+
+Inject content around the fields area:
+
+- `outstand_forms_before_fields` / `outstand_forms_after_fields` — before/after the fields wrapper content
+
+### Custom Field Types
+
+Register custom field types at runtime:
+
+```php
+$factory = new FieldFactory();
+$factory->register( 'date', MyDateField::class );
+```
+
+### Custom Validators
+
+Register custom server-side validators:
+
+```php
+$validator = new \Outstand\WP\Forms\Validation\Validator();
+$validator->register( 'phone', function( $value, $params, $config ) {
+    return preg_match( '/^\+?[\d\s\-()]+$/', $value );
+} );
 ```
 
 ## Changelog

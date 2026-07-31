@@ -1,0 +1,444 @@
+# Architecture
+
+## Overview
+
+Outstand Forms is a WordPress block-based forms plugin built on Gutenberg blocks (editor) and the Interactivity API (frontend). PHP serves as the single source of truth for field configuration, validation rules, and rendering. JavaScript consumes this configuration reactively.
+
+**Core Principle:** PHP defines, JS executes. Block attributes are stored in post content by the editor. At render time, PHP extracts those attributes, builds validation rules, and passes them to the frontend via `wp_interactivity_data_wp_context()`. The JS Interactivity API store reads this context and runs validators accordingly.
+
+## Directory Structure
+
+```
+outstand-forms/
+├── plugin.php                          # Bootstrap: constants, autoloader, Plugin::enable()
+├── composer.json                       # PHP dependencies (PSR-4 autoload)
+├── package.json                        # JS dependencies (@wordpress/scripts, Inputmask)
+├── includes/classes/
+│   ├── Plugin.php                      # Singleton, module loader, block registration
+│   ├── AbstractModule.php              # Base class for feature modules
+│   ├── FieldFactory.php                # Factory: type string → Field instance
+│   ├── Fields/
+│   │   ├── FieldInterface.php          # Field contract
+│   │   ├── AbstractField.php           # Base field: attributes, components, render, validation
+│   │   ├── Text.php
+│   │   ├── Email.php
+│   │   ├── Number.php
+│   │   ├── Password.php
+│   │   ├── Phone.php                   # tel type
+│   │   ├── URL.php
+│   │   └── Textarea.php
+│   ├── Components/
+│   │   ├── ComponentInterface.php      # Component contract (get_markup)
+│   │   ├── AbstractComponent.php       # Shared helpers (field accessors)
+│   │   ├── Input.php                   # <input> with Interactivity directives
+│   │   ├── Textarea.php               # <textarea> with Interactivity directives
+│   │   ├── Label.php                   # <label> with required indicator
+│   │   ├── Error.php                   # Error message container
+│   │   └── HelpText.php               # Help text container
+│   ├── REST/V1/
+│   │   ├── AbstractRoute.php           # REST endpoint base (namespace outstand-forms/v1)
+│   │   └── Forms.php                   # Forms submission endpoint
+│   ├── Blocks/
+│   │   └── FieldTurnstile.php          # Turnstile script registration + submission verification
+│   ├── EmailNotification.php           # Sends email notifications on form submission
+│   ├── Settings.php                    # Plugin settings page (outstand_forms_settings option)
+│   └── Validation/
+│       └── Validator.php               # Server-side validation engine
+├── src/
+│   ├── blocks/
+│   │   ├── form/                       # osf/form: container block
+│   │   │   ├── block.json
+│   │   │   ├── edit.js
+│   │   │   ├── render.php
+│   │   │   ├── view.js                 # Interactivity API store
+│   │   │   ├── variations.js           # Block variations (Blank, Contact Us)
+│   │   │   └── style.css
+│   │   ├── form-fields/                # osf/form-fields: fields wrapper
+│   │   │   ├── block.json
+│   │   │   ├── edit.js
+│   │   │   └── render.php
+│   │   ├── form-submit/                # osf/form-submit: submit wrapper
+│   │   │   ├── block.json
+│   │   │   ├── edit.js
+│   │   │   └── render.php
+│   │   ├── form-message/               # osf/form-message: submission message
+│   │   │   ├── block.json
+│   │   │   ├── edit.js
+│   │   │   └── render.php
+│   │   ├── form-errors/                # osf/form-errors: submission error list
+│   │   │   ├── block.json
+│   │   │   ├── edit.js
+│   │   │   └── render.php
+│   │   ├── field-input/                # osf/field-input: input field
+│   │   │   ├── block.json
+│   │   │   ├── edit.js
+│   │   │   └── render.php
+│   │   ├── field-textarea/             # osf/field-textarea: textarea field
+│   │   │   ├── block.json
+│   │   │   ├── edit.js
+│   │   │   └── render.php
+│   │   └── field-turnstile/            # osf/field-turnstile: Cloudflare Turnstile spam protection
+│   │       ├── block.json
+│   │       ├── edit.js
+│   │       ├── view.js
+│   │       └── render.php
+│   ├── components/                     # React editor components
+│   ├── fields/                         # React field wrappers
+│   ├── hooks/                          # React hooks (useFieldBlocks, useIsDuplicateFormBlock)
+│   ├── validation.js                   # Client-side field validation
+│   ├── utils.js
+│   ├── options.js
+│   └── constants.js
+├── build/                              # Compiled output (@wordpress/scripts)
+├── vendor/                             # Composer dependencies
+├── languages/                          # i18n translation files
+└── node_modules/
+```
+
+## Bootstrap Flow
+
+```
+plugin.php
+├── Define OUTSTAND_FORMS_VERSION, OUTSTAND_FORMS_BASENAME, OUTSTAND_FORMS_URL, OUTSTAND_FORMS_PATH,
+│   OUTSTAND_FORMS_DIST_URL, OUTSTAND_FORMS_DIST_PATH constants
+├── Require Composer autoloader (PSR-4: Outstand\WP\Forms → includes/classes)
+├── Initialize plugin update checker (GitHub-based)
+└── Hook on 'plugins_loaded' → Plugin::get_instance()->enable()
+    ├── Iterate modules array (FieldTurnstile, REST\V1\Forms, EmailNotification, Settings)
+    │   ├── FieldTurnstile → registers Turnstile script + submission filters
+    │   ├── Forms → registers REST routes on 'rest_api_init'
+    │   ├── EmailNotification → listens on 'outstand_forms_form_submitted'
+    │   └── Settings → registers the settings page
+    ├── Hook register_blocks() on 'init'
+    │   ├── Glob build/blocks/*/block.json
+    │   ├── register_block_type_from_metadata() for each block
+    │   └── Set up script translations
+    ├── Hook register_block_categories() on 'block_categories_all'
+    │   └── Add "Outstand Forms" category (slug: osf)
+    └── Hook blocks_editor_scripts() on 'enqueue_block_editor_assets'
+        └── Localizes Turnstile configuration state for the block editor
+```
+
+## Block Hierarchy
+
+```
+osf/form (top-level container)
+│   providesContext: osf/formId, osf/labelPosition, osf/helpTextPosition, osf/requiredIndicator
+│   allowedBlocks: osf/form-errors, osf/form-fields, osf/form-submit, osf/form-message
+│
+├── osf/form-errors (submission error list)
+│   │   usesContext: osf/formId
+│   │   ancestor: osf/form
+│
+├── osf/form-fields (fields wrapper)
+│   │   usesContext: osf/formId
+│   │   ancestor: osf/form
+│   │
+│   ├── osf/field-input
+│   │   usesContext: osf/formId, osf/labelPosition, osf/helpTextPosition, osf/requiredIndicator
+│   │   ancestor: osf/form-fields
+│   │
+│   └── osf/field-textarea
+│       usesContext: osf/formId, osf/labelPosition, osf/helpTextPosition, osf/requiredIndicator
+│       ancestor: osf/form-fields
+│
+├── osf/form-submit (submit wrapper)
+│   │   usesContext: osf/formId
+│   │   ancestor: osf/form
+│   │   allowedBlocks: core/button, core/buttons, osf/field-turnstile
+│   │
+│   └── osf/field-turnstile (Cloudflare Turnstile widget)
+│       usesContext: osf/formId
+│       ancestor: osf/form-submit
+│
+└── osf/form-message (submission message)
+    usesContext: osf/formId
+    ancestor: osf/form
+    allowedBlocks: core/paragraph
+```
+
+Context flows down via `providesContext` / `usesContext`. The form block sets form-wide defaults (label position, help text position, required indicator) that all field blocks inherit. Fields can override inherited values through their own attributes.
+
+## PHP Field System
+
+### FieldFactory (Factory Pattern)
+
+`FieldFactory` maps type strings to field classes and creates instances:
+
+```php
+$factory = new FieldFactory();
+$field = $factory->create('email', $attributes);
+```
+
+Built-in type mappings:
+
+| Type String | Class |
+|-------------|-------|
+| `text` | `Fields\Text` |
+| `email` | `Fields\Email` |
+| `number` | `Fields\Number` |
+| `password` | `Fields\Password` |
+| `tel` | `Fields\Phone` |
+| `url` | `Fields\URL` |
+| `textarea` | `Fields\Textarea` |
+
+New types can be registered at runtime via `FieldFactory::register($type, $class)`. The class must implement `FieldInterface`.
+
+### Field Types
+
+Each field type extends `AbstractField` and can override:
+
+- `initialize_components()` — configure which components make up the field
+- `get_validation_rules()` — define validation rules specific to the type
+
+`AbstractField` provides:
+
+- **ID generation**: `get_field_id()`, `get_label_id()`, `get_help_text_id()`, `get_error_id()`
+- **Base validation**: required, minLength, maxLength, pattern (extracted from attributes)
+- **Rendering**: assembles component markup based on label/help text position
+
+Type-specific overrides:
+
+| Type | Validation Additions | Notes |
+|------|---------------------|-------|
+| Email | Adds `email` rule | |
+| URL | Adds `url` rule | |
+| Number | Adds `min`/`max`, removes `minLength`/`maxLength`/`pattern` | Numeric-only rules |
+| Text, Password, Phone, Textarea | Base rules only | |
+
+### Component Composition
+
+Fields are composed of components, each implementing `ComponentInterface`:
+
+| Component | Responsibility |
+|-----------|---------------|
+| `Label` | `<label>` with optional required indicator |
+| `Input` | `<input>` with type-specific attributes and Interactivity directives |
+| `Textarea` | `<textarea>` with Interactivity directives |
+| `Error` | Error message container (reactive via `data-wp-text`) |
+| `HelpText` | Help text container |
+
+Components receive a field reference via `AbstractComponent` and use it to access field IDs, attributes, and type information.
+
+The `Input` component conditionally renders attributes based on input type:
+
+- **number**: `step`, `min`, `max` (no `minlength`, `maxlength`, `pattern`, `mask`)
+- **email**, **url**: no `mask` attributes
+- **all types**: `placeholder`, `autocomplete`, `required`, `aria-label`
+
+## Data Flow: PHP → Interactivity API
+
+```
+Block Editor saves attributes to post_content
+    ↓
+Frontend request → render.php executes
+    ↓
+Form render.php:
+├── wp_interactivity_state('osf/form')
+├── wp_interactivity_data_wp_context({
+│       formFields, isSubmitting, isSubmitted, hasSubmissionError,
+│       submissionMessage, submissionMessages,
+│       validationMessages: apply_filters('outstand_forms_validation_messages', defaults, formId)
+│   })
+├── Outputs <form data-wp-interactive="osf/form">
+└── Hidden fields: form_id, post_id, _wpnonce
+    ↓
+Field render.php:
+├── FieldFactory::create(type, attributes)
+├── field->get_validation_rules()  →  { required: true, email: 'email', minLength: 5, ... }
+├── wp_interactivity_data_wp_context({
+│       type, value, isValid, isFocused,
+│       fieldId, fieldName, helpTextId, errorId,
+│       validationRules
+│   })
+└── field->render()  →  Components output HTML with data-wp-* directives
+```
+
+Key data boundaries:
+
+- `wp_interactivity_data_wp_context()` — per-instance state on both the form (submission state, validation/submission messages) and each field (value, validity, rules); this is where submission and validation state live, not `wp_interactivity_config()`
+- `data-wp-*` directives on HTML elements — bind reactive state to DOM
+
+## Frontend Interactivity Store
+
+The `osf/form` store (`src/blocks/form/view.js`) is organized into three sections:
+
+### State (Computed Getters)
+
+| Getter | Purpose |
+|--------|---------|
+| `fieldAriaDescribedByAttribute` | Returns `aria-describedby` value: error ID when invalid, help text ID otherwise |
+| `fieldErrorMessage` | Looks up message from the form's `validationMessages` context, interpolates `{{min}}`/`{{max}}` placeholders |
+| `isFormValid` | Returns `true` only when all registered fields pass validation |
+
+### Actions (Event Handlers)
+
+| Action | Trigger | Effect |
+|--------|---------|--------|
+| `handleFieldFocus` | `focus` event | Sets `context.isFocused = true` |
+| `handleFieldBlur` | `blur` event | Sets `context.isFocused = false` |
+| `handleFieldChange` | `change` event | Updates `context.value` from element |
+| `handleFieldValidate` | `osf-field-validate` custom event | Runs `validate()`, updates context, dispatches `osf-field-validated` |
+| `handleFieldServerErrors` | `osf-field-server-error` custom event | Absorbs server-side validation errors returned by the REST endpoint into the field's context |
+| `handleFormSubmit` | form `submit` event | Prevents default, guards against double-submit, runs `validateForm()`, then `submitForm()` if valid |
+| `validateForm` | Called by `handleFormSubmit` | Dispatches `osf-field-validate` to all fields, awaits `Promise.all` |
+| `submitForm` | Called by `handleFormSubmit` when the form is valid | POSTs `FormData` to the form's `action` URL, updates submission state, dispatches `osf-field-server-error` to fields on a 400 response |
+
+### Callbacks (Init Hooks)
+
+| Callback | Directive | Purpose |
+|----------|-----------|---------|
+| `registerField` | `data-wp-init--register` | Registers field in form context on mount |
+| `initMask` | `data-wp-init--mask` | Lazy-loads Inputmask library, applies mask |
+
+### Custom Event System
+
+Fields and forms coordinate via custom DOM events:
+
+1. Form dispatches `osf-field-validate` to each field element
+2. Field handles validation, dispatches `osf-field-validated` back
+3. Form collects results via `Promise.all`, checks `isFormValid`, then dispatches `osf-form-validated` to itself
+4. On submission failure, `submitForm` dispatches `osf-field-server-error` to each field named in the REST error response
+
+## Validation Architecture
+
+```
+PHP (source of truth)                    JS (execution)
+─────────────────────                    ──────────────
+AbstractField::get_validation_rules()
+    ↓
+[required: true, email: 'email', ...]
+    ↓
+Serialized into data-wp-context          validate(value, rules) — src/validation.js
+    ↓                                        ↓
+Frontend receives context        ──→     For each rule:
+                                            Look up validator by name
+                                            validator(value, ruleConfig)
+                                            ↓
+                                         { isValid: bool, errors: [...] }
+                                            ↓
+                                         Update context.isValid, context.validationErrors
+                                            ↓
+                                         Reactive state updates DOM (error messages, ARIA)
+```
+
+The `validate()` function exported from `src/validation.js` iterates over rules, looks up each validator by name from an internal map, and returns `{ isValid, errors }`.
+
+Built-in validators: `required`, `email`, `url`, `pattern`, `minLength`, `maxLength`, `min`, `max`.
+
+## Server-Side Validation
+
+The `Validation\Validator` class provides server-side validation that mirrors the JS `validate()` function.
+
+### Usage
+
+```php
+$validator = new Validator();
+$result = $validator->validate( $value, $rules );
+// $result = [ 'is_valid' => bool, 'errors' => [ 'ruleName', ... ] ]
+```
+
+### Built-in Validators
+
+| Validator | Method | Behavior |
+|-----------|--------|----------|
+| `required` | `validate_required` | Fails if value is `null` or empty/whitespace string |
+| `email` | `validate_email` | HTML5 spec regex (matches `src/validation.js`); skips empty values |
+| `url` | `validate_url` | Regex requiring `http(s)://` (matches `src/validation.js`); skips empty values |
+| `pattern` | `validate_pattern` | Regex match using ASCII SOH (`chr(1)`) delimiter; fails closed on invalid regex |
+| `minLength` | `validate_min_length` | `mb_strlen()` comparison; skips empty values |
+| `maxLength` | `validate_max_length` | `mb_strlen()` comparison; skips empty values |
+| `min` | `validate_min` | Float comparison; skips non-numeric values |
+| `max` | `validate_max` | Float comparison; skips non-numeric values |
+
+### Custom Validator Registration
+
+```php
+$validator = new Validator();
+$validator->register( 'phone', function ( $value, $params, $config ) {
+    return preg_match( '/^\+?[\d\s\-()]+$/', $value );
+} );
+```
+
+### Submission Flow
+
+```
+Client POST /outstand-forms/v1/forms/submit
+    ↓
+Rate limit check (per-IP transient, 5 attempts/minute by default)
+    ↓
+FormBlockParser extracts field configs from block content using post_id
+    ↓
+outstand_forms_form_pre_submission_check filter (Turnstile verification runs here)
+    ↓
+Sanitize values (type-aware, scoped to known fields only)
+    ↓
+For each field config:
+    Validator->validate( submitted_value, validation_rules )
+    ↓
+If errors → WP_Error (400) with per-field error rule names
+    ↓
+do_action( 'outstand_forms_form_submitted', $form_id, $post_id, $sanitized_data, $form_data )
+    ↓
+WP_REST_Response (200)
+```
+
+**Security Note:** The submission endpoint is intentionally public and unauthenticated (`permission_callback` returns `true`). The `_wpnonce` field emitted by the form is not verified server-side. Abuse protection relies on the per-IP rate limit (configurable via `outstand_forms_rate_limit` filter) and optional Cloudflare Turnstile verification (enabled via the `osf/field-turnstile` block within the form).
+
+## Design Patterns
+
+| Pattern | Where | Purpose |
+|---------|-------|---------|
+| **Singleton** | `Plugin` | Single plugin instance |
+| **Factory** | `FieldFactory` | Create field instances from type strings |
+| **Template Method** | `AbstractField`, `AbstractComponent`, `AbstractRoute` | Base behavior with override points |
+| **Strategy** | Field types | Different validation rules and component sets per type |
+| **Composition** | Fields → Components | Fields composed of Label, Input/Textarea, Error, HelpText |
+| **Registry** | `Validator` | Central store for validator functions (PHP) |
+| **Observer** | Custom events, WP hooks | Decoupled communication between form and fields |
+| **Context/DI** | Block context system | Form-wide settings cascade to child blocks |
+
+## Extensibility Points
+
+### PHP
+
+**FieldFactory::register()** — Register custom field types:
+
+```php
+$factory = new FieldFactory();
+$factory->register('date', MyDateField::class);
+```
+
+**`outstand_forms_validation_messages` filter** — Override validation messages:
+
+```php
+add_filter('outstand_forms_validation_messages', function ($messages, $form_id) {
+    $messages['required'] = 'Please fill in this field.';
+    return $messages;
+}, 10, 2);
+```
+
+**`outstand_forms_form_submitted` action** — Fires after successful validation and sanitization:
+
+```php
+add_action( 'outstand_forms_form_submitted', function ( $form_id, $post_id, $sanitized_data, $form_data ) {
+    // Store submission, send email, trigger integrations, etc.
+}, 10, 4 );
+```
+
+**Actions** — Inject content around form/fields:
+
+- `outstand_forms_before_fields` / `outstand_forms_after_fields` — before/after fields wrapper content
+
+### JavaScript
+
+**`outstandForms.form.allowedBlocks` filter** — Change which blocks can be inserted inside the fields wrapper:
+
+```js
+addFilter('outstandForms.form.allowedBlocks', 'my-plugin/allowed-blocks', (blocks) => [
+	...blocks,
+	'core/separator',
+]);
+```
+
+JS validators are internal to `src/validation.js` and not exposed as a public API. To add custom validation rules, use the PHP `Validator::register()` method on the server side.
