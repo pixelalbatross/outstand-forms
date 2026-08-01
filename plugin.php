@@ -1,17 +1,18 @@
-<?php
+<?php // phpcs:ignore Generic.Commenting.DocComment.MissingShort
 /**
+ * @wordpress-plugin
  * Plugin Name:       Outstand Forms
  * Description:       Build flexible, modern forms using the WordPress block editor.
- * Plugin URI:        https://github.com/s3rgiosan/outstand-forms
+ * Plugin URI:        https://outstand.site/?utm_source=wp-plugins&utm_medium=outstand-forms&utm_campaign=plugin-uri
  * Requires at least: 6.7
  * Requires PHP:      8.2
  * Version:           1.0.0
  * Author:            Outstand
- * Author URI:        https://s3rgiosan.dev/?utm_source=wp-plugins&utm_medium=outstand-forms&utm_campaign=author-uri
+ * Author URI:        https://outstand.site/?utm_source=wp-plugins&utm_medium=outstand-forms&utm_campaign=author-uri
  * License:           GPL-3.0-or-later
  * License URI:       https://spdx.org/licenses/GPL-3.0-or-later.html
- * Update URI:        https://s3rgiosan.dev/
- * GitHub Plugin URI: https://github.com/s3rgiosan/outstand-forms
+ * Update URI:        https://outstand.site/
+ * GitHub Plugin URI: https://github.com/pixelalbatross/outstand-forms
  * Text Domain:       outstand-forms
  * Domain Path:       /languages
  */
@@ -38,7 +39,7 @@ if ( file_exists( OUTSTAND_FORMS_PATH . 'vendor/autoload.php' ) ) {
 
 if ( class_exists( PucFactory::class ) ) {
 	PucFactory::buildUpdateChecker(
-		'https://github.com/s3rgiosan/outstand-forms/',
+		'https://github.com/pixelalbatross/outstand-forms/',
 		__FILE__,
 		'outstand-forms'
 	)->setBranch( 'main' );
