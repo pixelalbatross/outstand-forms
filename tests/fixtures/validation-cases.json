@@ -614,5 +614,33 @@
 		"rules": { "pattern": "[" },
 		"is_valid": false,
 		"errors": [ "pattern" ]
+	},
+	{
+		"description": "minLength stringifies false as an empty string, not \"false\"",
+		"value": false,
+		"rules": { "minLength": 3 },
+		"is_valid": false,
+		"errors": [ "minLength" ]
+	},
+	{
+		"description": "maxLength stringifies false as an empty string, not \"false\"",
+		"value": false,
+		"rules": { "maxLength": 2 },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "minLength stringifies true as \"1\", not \"true\"",
+		"value": true,
+		"rules": { "minLength": 2 },
+		"is_valid": false,
+		"errors": [ "minLength" ]
+	},
+	{
+		"description": "maxLength stringifies true as \"1\", not \"true\"",
+		"value": true,
+		"rules": { "maxLength": 1 },
+		"is_valid": true,
+		"errors": []
 	}
 ]

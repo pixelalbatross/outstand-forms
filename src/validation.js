@@ -62,6 +62,26 @@ function isAbsent(value) {
 }
 
 /**
+ * Cast a value to a string the way PHP does.
+ *
+ * JavaScript's `String()` and PHP's `(string)` cast agree on everything the
+ * form actually submits, but disagree on booleans: `String( false )` is
+ * `"false"` (5 characters) while `(string) false` is `""` (0). Since the
+ * server is authoritative, the client has to match it — otherwise a value the
+ * server rejects for being too short looks valid in the browser.
+ *
+ * @param {*} value The value to cast.
+ * @return {string} The value as PHP would stringify it.
+ */
+function toStringValue(value) {
+	if (typeof value === 'boolean') {
+		return value ? '1' : '';
+	}
+
+	return String(value);
+}
+
+/**
  * Validate that a value is present and non-empty.
  *
  * @param {*}      value  The value to validate.
@@ -152,7 +172,7 @@ function minLength(value, length = 0) {
 		return true;
 	}
 
-	return [...String(value)].length >= length;
+	return [...toStringValue(value)].length >= length;
 }
 
 /**
@@ -169,7 +189,7 @@ function maxLength(value, length = 0) {
 		return true;
 	}
 
-	return [...String(value)].length <= length;
+	return [...toStringValue(value)].length <= length;
 }
 
 /**
