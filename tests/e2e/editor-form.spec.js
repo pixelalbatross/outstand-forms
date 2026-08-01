@@ -102,4 +102,52 @@ test.describe('Form block in the editor', () => {
 			}
 		}).toPass();
 	});
+
+	test.describe('Configuring a field through the inspector', () => {
+		test.afterEach(async ({ requestUtils }) => {
+			await requestUtils.deleteAllPosts();
+		});
+
+		test('setting a label, marking it required, and choosing a field type round-trips to the front end', async ({
+			editor,
+			page,
+			requestUtils,
+		}) => {
+			// The field type is seeded rather than chosen through the block
+			// switcher. Driving the switcher couples the test to WordPress's
+			// variation-picker markup, which is core UI this plugin does not
+			// own; what matters here is that the type reaches the front end
+			// alongside the settings configured below.
+			await editor.setContent(`<!-- wp:osf/form {"formId":"e2e-editor-configure"} -->
+<!-- wp:osf/form-fields -->
+<!-- wp:osf/field-input {"fieldId":1,"type":"email"} /-->
+<!-- /wp:osf/form-fields -->
+<!-- /wp:osf/form -->`);
+
+			await editor.canvas.locator('[data-type="osf/field-input"]').click();
+
+			// Set a label via the inline RichText control.
+			await editor.canvas.getByRole('textbox', { name: 'Empty label' }).fill('Contact Email');
+
+			// Mark it required via the inspector "Settings" panel.
+			await editor.openDocumentSettingsSidebar();
+			await page.getByRole('checkbox', { name: 'Required' }).click();
+
+			// Give it a stable, predictable field name via "Advanced".
+			await page.getByRole('button', { name: 'Advanced' }).click();
+			await page.getByRole('textbox', { name: 'Name', exact: true }).fill('contact_email');
+
+			const postId = await editor.publishPost();
+			const post = await requestUtils.rest({ path: `/wp/v2/posts/${postId}` });
+
+			await page.goto(post.link);
+
+			const field = page.locator('.osf-field-input--email');
+			await expect(field.locator('.osf-field__label')).toContainText('Contact Email');
+
+			const input = field.locator('input[name="contact_email"]');
+			await expect(input).toHaveAttribute('type', 'email');
+			await expect(input).toHaveAttribute('required', '');
+		});
+	});
 });
