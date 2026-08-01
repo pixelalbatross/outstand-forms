@@ -9,7 +9,7 @@ class FormBlockParser {
 	 *
 	 * @var string[]
 	 */
-	private const FIELD_BLOCK_NAMES = [
+	public const FIELD_BLOCK_NAMES = [
 		'osf/field-input',
 		'osf/field-textarea',
 	];

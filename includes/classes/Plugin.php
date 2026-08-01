@@ -87,11 +87,12 @@ class Plugin {
 			'osf-form-editor-script',
 			'osfSettings',
 			[
-				'spam' => [
+				'spam'            => [
 					'turnstile' => [
 						'isConfigured' => $is_configured,
 					],
 				],
+				'fieldBlockNames' => FormBlockParser::FIELD_BLOCK_NAMES,
 			]
 		);
 	}

@@ -7,7 +7,7 @@ import { store as blockEditorStore } from '@wordpress/block-editor';
 /**
  * Internal dependencies
  */
-import { findBlocks } from '../utils';
+import { findBlocks, isFieldBlock } from '../utils';
 
 /**
  * Resolve the submission name for a field block.
@@ -44,10 +44,7 @@ export function useIsDuplicateFieldName(clientId, attributes) {
 				return false;
 			}
 
-			const fieldBlocks = findBlocks(
-				(block) => block.name?.startsWith('osf/field-'),
-				getBlocks(formClientId),
-			);
+			const fieldBlocks = findBlocks(isFieldBlock, getBlocks(formClientId));
 			const ownName = resolveFieldName({ name, fieldId });
 
 			return fieldBlocks.some(

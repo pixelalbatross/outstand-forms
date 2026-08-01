@@ -1,3 +1,4 @@
+/* global osfSettings */
 /* eslint-disable import/no-extraneous-dependencies */
 /**
  * External dependencies
@@ -15,6 +16,28 @@ export function getBlockId(length = 9) {
 }
 
 /**
+ * Checks whether a block represents a form field.
+ *
+ * `FormBlockParser::FIELD_BLOCK_NAMES` is the only definition of this list;
+ * it reaches the editor as `osfSettings.fieldBlockNames`. There is
+ * deliberately no JS fallback list — a stale mirror would silently disagree
+ * with the server about what gets validated and submitted.
+ *
+ * @param {Object} block The block to check.
+ * @return {boolean} True if the block is a form field block.
+ */
+export function isFieldBlock(block) {
+	const fieldBlockNames =
+		typeof osfSettings !== 'undefined' ? osfSettings?.fieldBlockNames : undefined;
+
+	if (!Array.isArray(fieldBlockNames)) {
+		return false;
+	}
+
+	return fieldBlockNames.includes(block?.name);
+}
+
+/**
  * Recursively finds all blocks that match a given condition.
  *
  * This function searches through a list of blocks and all their inner blocks,
@@ -26,10 +49,7 @@ export function getBlockId(length = 9) {
  * @return {Array} An array of blocks that match the condition.
  *
  * @example
- * findBlocks(
- *   (block) => block.name?.startsWith('osf/field-'),
- *   getBlocks(clientId)
- * );
+ * findBlocks(isFieldBlock, getBlocks(clientId));
  */
 export function findBlocks(matcher, blocks = []) {
 	return blocks.flatMap((block) => {
