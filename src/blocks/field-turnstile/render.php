@@ -9,15 +9,20 @@
 
 namespace Outstand\WP\Forms;
 
+use Outstand\WP\Forms\Blocks\FieldTurnstile;
 use Outstand\WP\Forms\Settings;
 
-// Get Turnstile settings.
-$settings = get_option( Settings::OPTION_NAME, [] );
-$site_key = $settings['site_key'] ?? '';
-
-if ( empty( $site_key ) ) {
+// When Turnstile isn't fully configured (site key and/or secret key
+// missing), don't render the widget: without a secret key the backend
+// can never verify a token anyway (@see FieldTurnstile::verify_form_submission()),
+// so rendering it here would be misleading. This is the same test used
+// on the backend, see FieldTurnstile::is_configured().
+if ( ! FieldTurnstile::is_configured() ) {
 	return;
 }
+
+$settings = get_option( Settings::OPTION_NAME, [] );
+$site_key = $settings['site_key'] ?? '';
 
 $turnstile_theme = $attributes['theme'] ?? 'auto';
 $turnstile_size  = $attributes['size'] ?? 'normal';

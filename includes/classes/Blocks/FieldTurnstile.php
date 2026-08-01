@@ -63,6 +63,28 @@ class FieldTurnstile extends AbstractBlock {
 	}
 
 	/**
+	 * Determine whether Turnstile is fully configured, i.e. both a site key
+	 * and a secret key are set.
+	 *
+	 * Both keys are required end to end: the site key is needed for the
+	 * widget to render on the frontend (@see render.php), and the secret
+	 * key is needed to verify the resulting token on the backend
+	 * (@see self::verify_form_submission()). This single test is shared by
+	 * both sides so they can never disagree about whether Turnstile is
+	 * usable.
+	 *
+	 * @return bool
+	 */
+	public static function is_configured(): bool {
+
+		$settings   = get_option( Settings::OPTION_NAME, [] );
+		$site_key   = $settings['site_key'] ?? '';
+		$secret_key = $settings['secret_key'] ?? '';
+
+		return ! empty( $site_key ) && ! empty( $secret_key );
+	}
+
+	/**
 	 * Verify the Turnstile token during form submission.
 	 *
 	 * @param true|WP_Error   $result  The current check result.
@@ -87,11 +109,20 @@ class FieldTurnstile extends AbstractBlock {
 			return $result;
 		}
 
+		// When Turnstile isn't configured, the widget cannot render on the
+		// frontend (see render.php), so a token can never exist. Demanding
+		// one here would not protect the form, it would take it offline:
+		// every submission would fail. Skip verification instead and rely
+		// on the editor warning to make the misconfiguration visible.
+		if ( ! self::is_configured() ) {
+			return $result;
+		}
+
 		$settings   = get_option( Settings::OPTION_NAME, [] );
 		$secret_key = $settings['secret_key'] ?? '';
 		$token      = $request->get_param( 'cf-turnstile-response' );
 
-		if ( empty( $token ) || empty( $secret_key ) ) {
+		if ( empty( $token ) ) {
 			return new WP_Error(
 				'turnstile_failed',
 				__( 'Security verification failed.', 'outstand-forms' ),

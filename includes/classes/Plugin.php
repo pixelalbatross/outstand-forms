@@ -2,6 +2,8 @@
 
 namespace Outstand\WP\Forms;
 
+use Outstand\WP\Forms\Blocks\FieldTurnstile;
+
 class Plugin {
 
 	/**
@@ -79,10 +81,7 @@ class Plugin {
 	 * @return void
 	 */
 	public function blocks_editor_scripts(): void {
-		$settings      = get_option( Settings::OPTION_NAME, [] );
-		$site_key      = $settings['site_key'] ?? '';
-		$secret_key    = $settings['secret_key'] ?? '';
-		$is_configured = ! empty( $site_key ) && ! empty( $secret_key );
+		$is_configured = FieldTurnstile::is_configured();
 
 		wp_localize_script(
 			'osf-form-editor-script',
