@@ -276,7 +276,7 @@ const { state, actions } = store('osf/form', {
 		async submitForm() {
 			const context = getContext('osf/form');
 			const { ref: form } = getElement();
-			const { submissionMessages = {} } = context;
+			const { submissionMessages = {}, submitUrl } = context;
 
 			// Reset state.
 			context.hasSubmissionError = false;
@@ -286,7 +286,10 @@ const { state, actions } = store('osf/form', {
 			try {
 				const formData = new FormData(form);
 
-				const response = await fetch(form.action, {
+				// The form's `action` points at the page so a submission
+				// without JavaScript gets an HTML response; the endpoint this
+				// path posts to travels in the context instead.
+				const response = await fetch(submitUrl || form.action, {
 					method: 'POST',
 					headers: {
 						'X-WP-Nonce': formData.get('_wpnonce'),
@@ -299,7 +302,6 @@ const { state, actions } = store('osf/form', {
 
 				if (response.ok) {
 					context.isSubmitted = true;
-					context.submissionMessage = data.message || '';
 				} else {
 					setSubmissionError(context, submissionMessages);
 
@@ -344,7 +346,12 @@ const { state, actions } = store('osf/form', {
 		 */
 		registerField() {
 			const { fieldName, initialRecord } = getContext();
-			const { value = '', validationRules = {} } = initialRecord ?? {};
+			const {
+				value = '',
+				validationRules = {},
+				isValid = true,
+				errors = [],
+			} = initialRecord ?? {};
 
 			const formContext = getContext('osf/form');
 			if (!formContext.formFields) {
@@ -353,11 +360,22 @@ const { state, actions } = store('osf/form', {
 
 			formContext.formFields[fieldName] = {
 				value,
-				isValid: true,
+				isValid,
 				isFocused: false,
-				errors: [],
+				errors: [...errors],
 				validationRules: { ...validationRules },
 			};
+		},
+		/**
+		 * Disable native validation once the client takes over.
+		 *
+		 * The attribute is not server-rendered: a visitor without JavaScript
+		 * would otherwise lose browser validation as well as the custom one.
+		 */
+		initNoValidate() {
+			const { ref } = getElement();
+
+			ref.noValidate = true;
 		},
 		/**
 		 * Initialize the field mask.

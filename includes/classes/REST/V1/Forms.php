@@ -76,6 +76,32 @@ class Forms extends AbstractRoute {
 	 */
 	public function submit_form( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 
+		$result = $this->process_submission( $request );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		$response = [
+			'success' => true,
+			'message' => __( 'Form submitted successfully.', 'outstand-forms' ),
+		];
+
+		return new WP_REST_Response( $response, 200 );
+	}
+
+	/**
+	 * Run the submission pipeline shared by every entry point.
+	 *
+	 * Rate limiting, the pre-submission check, sanitization, validation and the
+	 * `outstand_forms_form_submitted` action all live here so the REST route
+	 * and the no-JavaScript page POST cannot drift apart.
+	 *
+	 * @param WP_REST_Request $request The request.
+	 * @return array{form_id: string, post_id: int, sanitized_data: array, form_data: array}|WP_Error
+	 */
+	public function process_submission( WP_REST_Request $request ): array|WP_Error {
+
 		$form_id = $request->get_param( 'form_id' );
 		$post_id = $request->get_param( 'post_id' );
 		$params  = $request->get_params();
@@ -157,12 +183,12 @@ class Forms extends AbstractRoute {
 		 */
 		do_action( 'outstand_forms_form_submitted', $form_id, $post_id, $sanitized_data, $form_data );
 
-		$response = [
-			'success' => true,
-			'message' => __( 'Form submitted successfully.', 'outstand-forms' ),
+		return [
+			'form_id'        => $form_id,
+			'post_id'        => $post_id,
+			'sanitized_data' => $sanitized_data,
+			'form_data'      => $form_data,
 		];
-
-		return new WP_REST_Response( $response, 200 );
 	}
 
 	/**

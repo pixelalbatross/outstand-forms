@@ -34,6 +34,18 @@ $help_text_position = $attributes['helpTextPosition'];
 $factory = FieldFactory::instance();
 $field   = $factory->create( $field_type, $attributes );
 
+// A submission that failed server-side redirects back here, so the field
+// re-renders with what the visitor typed and the rules it broke.
+$submission_state = FormSubmission::get_render_state( $attributes['formId'] );
+$field_name       = $field->get_field_name();
+$field_errors     = $submission_state['errors'][ $field_name ] ?? [];
+
+if ( array_key_exists( $field_name, $submission_state['values'] ) ) {
+	$default_value              = $submission_state['values'][ $field_name ];
+	$attributes['defaultValue'] = $default_value;
+	$field                      = $factory->create( $field_type, $attributes );
+}
+
 $wrapper_classes = [
 	'osf-field',
 	'osf-field-input',
@@ -68,6 +80,8 @@ $context = wp_interactivity_data_wp_context(
 		'initialRecord' => [
 			'value'           => $default_value,
 			'validationRules' => $field->get_validation_rules(),
+			'isValid'         => empty( $field_errors ),
+			'errors'          => $field_errors,
 		],
 	]
 );
