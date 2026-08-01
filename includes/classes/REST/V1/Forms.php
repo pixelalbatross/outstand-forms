@@ -2,6 +2,7 @@
 
 namespace Outstand\WP\Forms\REST\V1;
 
+use Outstand\WP\Forms\FieldFactory;
 use Outstand\WP\Forms\FormBlockParser;
 use Outstand\WP\Forms\Validation\Validator;
 use WP_Error;
@@ -173,6 +174,8 @@ class Forms extends AbstractRoute {
 	 */
 	protected function sanitize_form_data( array $data, array $field_configs ): array {
 
+		$factory = FieldFactory::instance();
+
 		$sanitized = [];
 		foreach ( $field_configs as $field_name => $config ) {
 
@@ -180,16 +183,9 @@ class Forms extends AbstractRoute {
 				continue;
 			}
 
-			$value = $data[ $field_name ];
-			$type  = $config['type'] ?? 'text';
+			$type = $config['type'] ?? 'text';
 
-			$sanitized[ $field_name ] = match ( $type ) {
-				'email'    => sanitize_email( $value ),
-				'url'      => esc_url_raw( $value ),
-				'number'   => is_numeric( $value ) ? (float) $value : null,
-				'textarea' => sanitize_textarea_field( $value ),
-				default    => sanitize_text_field( $value ),
-			};
+			$sanitized[ $field_name ] = $factory->sanitize( $type, $data[ $field_name ] );
 		}
 
 		return $sanitized;

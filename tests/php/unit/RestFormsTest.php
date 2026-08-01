@@ -2,6 +2,7 @@
 
 namespace Outstand\WP\Forms\Tests\Unit;
 
+use Outstand\WP\Forms\FieldFactory;
 use WP_REST_Request;
 
 class RestFormsTest extends \WP_UnitTestCase {
@@ -9,6 +10,8 @@ class RestFormsTest extends \WP_UnitTestCase {
 	private const ROUTE = '/outstand-forms/v1/forms/submit';
 
 	private const FORM_CONTENT = '<!-- wp:osf/form {"formId":"form-a"} --><!-- wp:osf/form-fields --><!-- wp:osf/field-input {"fieldId":1,"type":"email","required":true,"label":"Email"} /--><!-- wp:osf/field-input {"fieldId":2,"type":"text","pattern":"[0-9]+","label":"Code"} /--><!-- /wp:osf/form-fields --><!-- /wp:osf/form -->';
+
+	private const CUSTOM_FORM_CONTENT = '<!-- wp:osf/form {"formId":"form-c"} --><!-- wp:osf/form-fields --><!-- wp:osf/field-input {"fieldId":5,"type":"slug","required":true,"label":"Slug"} /--><!-- /wp:osf/form-fields --><!-- /wp:osf/form -->';
 
 	private const NUMBER_FORM_CONTENT = '<!-- wp:osf/form {"formId":"form-b"} --><!-- wp:osf/form-fields --><!-- wp:osf/field-input {"fieldId":3,"type":"number","required":true,"label":"Quantity"} /--><!-- wp:osf/field-input {"fieldId":4,"type":"number","label":"Optional Amount"} /--><!-- /wp:osf/form-fields --><!-- /wp:osf/form -->';
 
@@ -36,6 +39,8 @@ class RestFormsTest extends \WP_UnitTestCase {
 	public function tear_down(): void {
 		remove_filter( 'outstand_forms_rate_limit', '__return_zero' );
 		unset( $_SERVER['REMOTE_ADDR'] );
+
+		FieldFactory::reset_instance();
 
 		parent::tear_down();
 	}
@@ -112,6 +117,95 @@ class RestFormsTest extends \WP_UnitTestCase {
 		$data = $response->get_data();
 		$this->assertSame( 'validation_failed', $data['code'] );
 		$this->assertSame( [ 'required' ], $data['data']['errors']['field_3'] );
+	}
+
+	/**
+	 * A non-numeric number submission must sanitize to null and fail `required`.
+	 */
+	public function test_non_numeric_required_number_field_fails_validation(): void {
+		$number_post_id = self::factory()->post->create( [ 'post_content' => self::NUMBER_FORM_CONTENT ] );
+
+		$captured = null;
+		add_action(
+			'outstand_forms_form_submitted',
+			function ( $form_id, $post_id, $sanitized_data ) use ( &$captured ) {
+				$captured = $sanitized_data;
+			},
+			10,
+			3
+		);
+
+		$response = $this->dispatch_submission(
+			[
+				'field_3' => 'abc',
+			],
+			'form-b',
+			$number_post_id
+		);
+
+		$this->assertSame( 400, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertSame( 'validation_failed', $data['code'] );
+		$this->assertSame( [ 'required' ], $data['data']['errors']['field_3'] );
+		$this->assertNull( $captured, 'The submission must not have completed.' );
+	}
+
+	/**
+	 * A field type registered by a third party must render, validate and sanitize.
+	 */
+	public function test_third_party_field_type_validates_and_sanitizes(): void {
+		$register = function ( FieldFactory $factory ): FieldFactory {
+			$factory->register(
+				'slug',
+				[
+					'rules'    => [ 'pattern' => '[a-z0-9-]+' ],
+					'sanitize' => 'sanitize_title',
+				]
+			);
+
+			return $factory;
+		};
+		add_filter( 'outstand_forms_field_factory', $register );
+		FieldFactory::reset_instance();
+
+		$custom_post_id = self::factory()->post->create( [ 'post_content' => self::CUSTOM_FORM_CONTENT ] );
+
+		$captured = null;
+		add_action(
+			'outstand_forms_form_submitted',
+			function ( $form_id, $post_id, $sanitized_data ) use ( &$captured ) {
+				$captured = $sanitized_data;
+			},
+			10,
+			3
+		);
+
+		$accepted = $this->dispatch_submission(
+			[
+				'field_5' => 'Hello World',
+			],
+			'form-c',
+			$custom_post_id
+		);
+
+		$rejected = $this->dispatch_submission(
+			[
+				'field_5' => '',
+			],
+			'form-c',
+			$custom_post_id
+		);
+
+		remove_filter( 'outstand_forms_field_factory', $register );
+
+		// The custom sanitizer ran and the custom rule accepted its output.
+		$this->assertSame( 200, $accepted->get_status() );
+		$this->assertSame( 'hello-world', $captured['field_5'] );
+
+		// The rules the custom type declared are enforced server-side.
+		$this->assertSame( 400, $rejected->get_status() );
+		$this->assertSame( [ 'required' ], $rejected->get_data()['data']['errors']['field_5'] );
 	}
 
 	/**

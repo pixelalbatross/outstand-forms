@@ -85,6 +85,14 @@ interface FieldInterface {
 	public function get_validation_rules(): array;
 
 	/**
+	 * Sanitize a submitted value for this field type.
+	 *
+	 * @param mixed $value The submitted value.
+	 * @return mixed
+	 */
+	public function sanitize( mixed $value ): mixed;
+
+	/**
 	 * Render the field.
 	 *
 	 * @return void

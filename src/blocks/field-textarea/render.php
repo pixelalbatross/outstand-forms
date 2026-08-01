@@ -30,7 +30,7 @@ $label_position     = $attributes['labelPosition'];
 $help_text          = $attributes['helpText'] ?? '';
 $help_text_position = $attributes['helpTextPosition'];
 
-$factory = new FieldFactory();
+$factory = FieldFactory::instance();
 $field   = $factory->create( 'textarea', $attributes );
 
 $wrapper_classes = [

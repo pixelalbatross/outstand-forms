@@ -31,7 +31,7 @@ $label_position     = $attributes['labelPosition'];
 $help_text          = $attributes['helpText'] ?? '';
 $help_text_position = $attributes['helpTextPosition'];
 
-$factory = new FieldFactory();
+$factory = FieldFactory::instance();
 $field   = $factory->create( $field_type, $attributes );
 
 $wrapper_classes = [

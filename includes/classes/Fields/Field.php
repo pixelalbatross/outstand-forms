@@ -3,8 +3,26 @@
 namespace Outstand\WP\Forms\Fields;
 
 use Outstand\WP\Forms\Components\ComponentInterface;
+use Outstand\WP\Forms\Components\Error;
+use Outstand\WP\Forms\Components\HelpText;
+use Outstand\WP\Forms\Components\Input;
+use Outstand\WP\Forms\Components\Label;
 
-abstract class AbstractField implements FieldInterface {
+/**
+ * A form field, entirely described by its type definition.
+ *
+ * Every field type shares this class; what differs between types lives in the
+ * definition array supplied by the {@see \Outstand\WP\Forms\FieldFactory}
+ * registry. See FieldFactory::register() for the definition shape.
+ */
+class Field implements FieldInterface {
+
+	/**
+	 * Field type.
+	 *
+	 * @var string
+	 */
+	protected string $type;
 
 	/**
 	 * Field attributes.
@@ -14,7 +32,14 @@ abstract class AbstractField implements FieldInterface {
 	protected array $attributes = [];
 
 	/**
-	 * Field components
+	 * Type definition.
+	 *
+	 * @var array
+	 */
+	protected array $definition = [];
+
+	/**
+	 * Field components.
 	 *
 	 * @var array
 	 */
@@ -23,28 +48,39 @@ abstract class AbstractField implements FieldInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @param array $attributes Field attributes.
+	 * @param string $type       Field type.
+	 * @param array  $attributes Field attributes.
+	 * @param array  $definition Type definition.
 	 */
-	public function __construct( array $attributes ) {
+	public function __construct( string $type, array $attributes, array $definition = [] ) {
+		$this->type       = $type;
 		$this->attributes = $attributes;
+		$this->definition = $definition;
 		$this->initialize_components();
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	abstract public function get_type(): string;
-
-	/**
-	 * {@inheritDoc}
-	 */
-	abstract public function initialize_components(): void;
+	public function get_type(): string {
+		return $this->type;
+	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public function get_attributes(): array {
 		return $this->attributes;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function initialize_components(): void {
+		$this->components['label']     = new Label( $this );
+		$this->components['help_text'] = new HelpText( $this );
+		$this->components['error']     = new Error( $this );
+		$this->components['field']     = $this->create_field_component();
 	}
 
 	/**
@@ -122,7 +158,22 @@ abstract class AbstractField implements FieldInterface {
 			$validation_rules['pattern'] = $this->attributes['pattern'];
 		}
 
-		return $validation_rules;
+		$rules = $this->definition['rules'] ?? [];
+
+		if ( is_callable( $rules ) ) {
+			return (array) call_user_func( $rules, $validation_rules, $this->attributes );
+		}
+
+		return array_merge( $validation_rules, $rules );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function sanitize( mixed $value ): mixed {
+		$sanitizer = $this->definition['sanitize'] ?? 'sanitize_text_field';
+
+		return call_user_func( $sanitizer, $value );
 	}
 
 	/**
@@ -179,5 +230,21 @@ abstract class AbstractField implements FieldInterface {
 
 		<?php
 		// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+
+	/**
+	 * Build the control component for this field type.
+	 *
+	 * @return ComponentInterface
+	 */
+	private function create_field_component(): ComponentInterface {
+
+		$component = $this->definition['component'] ?? null;
+
+		if ( null === $component ) {
+			return new Input( $this, $this->type );
+		}
+
+		return call_user_func( $component, $this );
 	}
 }

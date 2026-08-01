@@ -25,9 +25,10 @@ class FormBlockParser {
 	 * Constructor.
 	 *
 	 * @param FieldFactory|null $field_factory Optional field factory instance.
+	 *                                        Defaults to the shared, filtered registry.
 	 */
 	public function __construct( ?FieldFactory $field_factory = null ) {
-		$this->field_factory = $field_factory ?? new FieldFactory();
+		$this->field_factory = $field_factory ?? FieldFactory::instance();
 	}
 
 	/**

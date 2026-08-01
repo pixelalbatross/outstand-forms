@@ -109,12 +109,31 @@ Inject content around the fields area:
 
 ### Custom Field Types
 
-Register custom field types at runtime:
+A field type is a definition array, registered on the shared factory through the
+`outstand_forms_field_factory` filter. Rendering, validation and sanitization all
+read from that same registry:
 
 ```php
-$factory = new FieldFactory();
-$factory->register( 'date', MyDateField::class );
+add_filter( 'outstand_forms_field_factory', function( $factory ) {
+    $factory->register( 'slug', [
+        // Optional. Builds the control. Defaults to an <input type="{type}">.
+        'component' => function( $field ) {
+            return new \Outstand\WP\Forms\Components\Input( $field, 'text' );
+        },
+        // Optional. Array merged into the base rules, or a callable
+        // ( array $rules, array $attributes ): array for full control.
+        'rules'     => [ 'pattern' => '[a-z0-9-]+' ],
+        // Optional. Defaults to sanitize_text_field.
+        'sanitize'  => 'sanitize_title',
+    ] );
+
+    return $factory;
+} );
 ```
+
+Note: the `osf/field-input` block only offers the built-in types in the editor,
+so a custom type currently needs its own block (or a `block.json` override) to be
+selectable there.
 
 ### Custom Validators
 

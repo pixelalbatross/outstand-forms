@@ -16,17 +16,10 @@ outstand-forms/
 ├── includes/classes/
 │   ├── Plugin.php                      # Singleton, module loader, block registration
 │   ├── AbstractModule.php              # Base class for feature modules
-│   ├── FieldFactory.php                # Factory: type string → Field instance
+│   ├── FieldFactory.php                # Type registry: definitions, create(), sanitize()
 │   ├── Fields/
 │   │   ├── FieldInterface.php          # Field contract
-│   │   ├── AbstractField.php           # Base field: attributes, components, render, validation
-│   │   ├── Text.php
-│   │   ├── Email.php
-│   │   ├── Number.php
-│   │   ├── Password.php
-│   │   ├── Phone.php                   # tel type
-│   │   ├── URL.php
-│   │   └── Textarea.php
+│   │   └── Field.php                   # The field: attributes, components, render, validation, sanitize
 │   ├── Components/
 │   │   ├── ComponentInterface.php      # Component contract (get_markup)
 │   │   ├── AbstractComponent.php       # Shared helpers (field accessors)
@@ -161,50 +154,49 @@ Context flows down via `providesContext` / `usesContext`. The form block sets fo
 
 ## PHP Field System
 
-### FieldFactory (Factory Pattern)
+### FieldFactory (Type Registry)
 
-`FieldFactory` maps type strings to field classes and creates instances:
+A field type is a **definition array**, not a class. `FieldFactory` holds the
+definitions and creates `Fields\Field` instances from them:
 
 ```php
-$factory = new FieldFactory();
-$field = $factory->create('email', $attributes);
+$factory = FieldFactory::instance();
+$field   = $factory->create( 'email', $attributes );
 ```
 
-Built-in type mappings:
+`FieldFactory::instance()` builds the registry once and passes it through the
+`outstand_forms_field_factory` filter, so block rendering, `FormBlockParser` and
+REST sanitization all read the same registry (including third-party types).
 
-| Type String | Class |
-|-------------|-------|
-| `text` | `Fields\Text` |
-| `email` | `Fields\Email` |
-| `number` | `Fields\Number` |
-| `password` | `Fields\Password` |
-| `tel` | `Fields\Phone` |
-| `url` | `Fields\URL` |
-| `textarea` | `Fields\Textarea` |
+A definition supports three optional keys:
 
-New types can be registered at runtime via `FieldFactory::register($type, $class)`. The class must implement `FieldInterface`.
+| Key | Shape | Default |
+|-----|-------|---------|
+| `component` | `callable( FieldInterface $field ): ComponentInterface` | `<input type="{type}">` |
+| `rules` | array merged into the base rules, or `callable( array $rules, array $attributes ): array` | `[]` |
+| `sanitize` | `callable( mixed $value ): mixed` | `sanitize_text_field` |
 
-### Field Types
+Built-in types:
 
-Each field type extends `AbstractField` and can override:
+| Type | Extra rules | Sanitizer |
+|------|-------------|-----------|
+| `text`, `password`, `tel` | — | `sanitize_text_field` |
+| `email` | `email` | `sanitize_email` |
+| `url` | `url` | `esc_url_raw` |
+| `number` | adds `min`/`max`, drops `minLength`/`maxLength`/`pattern` | numeric cast, non-numeric → `null` |
+| `textarea` | — (renders `<textarea>`) | `sanitize_textarea_field` |
 
-- `initialize_components()` — configure which components make up the field
-- `get_validation_rules()` — define validation rules specific to the type
+The `number` sanitizer deliberately yields `null` rather than `0` for non-numeric
+input, so a required number field still fails the `required` rule.
 
-`AbstractField` provides:
+### Fields\Field
+
+One class serves every type. It provides:
 
 - **ID generation**: `get_field_id()`, `get_label_id()`, `get_help_text_id()`, `get_error_id()`
-- **Base validation**: required, minLength, maxLength, pattern (extracted from attributes)
+- **Base validation**: required, minLength, maxLength, pattern (extracted from attributes), then the type's `rules`
+- **Sanitization**: `sanitize()`, using the type's `sanitize` callable
 - **Rendering**: assembles component markup based on label/help text position
-
-Type-specific overrides:
-
-| Type | Validation Additions | Notes |
-|------|---------------------|-------|
-| Email | Adds `email` rule | |
-| URL | Adds `url` rule | |
-| Number | Adds `min`/`max`, removes `minLength`/`maxLength`/`pattern` | Numeric-only rules |
-| Text, Password, Phone, Textarea | Base rules only | |
 
 ### Component Composition
 
@@ -244,7 +236,7 @@ Form render.php:
 └── Hidden fields: form_id, post_id, _wpnonce
     ↓
 Field render.php:
-├── FieldFactory::create(type, attributes)
+├── FieldFactory::instance()->create(type, attributes)
 ├── field->get_validation_rules()  →  { required: true, email: 'email', minLength: 5, ... }
 ├── wp_interactivity_data_wp_context({
 │       type, value, isValid, isFocused,
@@ -390,9 +382,9 @@ WP_REST_Response (200)
 | Pattern | Where | Purpose |
 |---------|-------|---------|
 | **Singleton** | `Plugin` | Single plugin instance |
-| **Factory** | `FieldFactory` | Create field instances from type strings |
-| **Template Method** | `AbstractField`, `AbstractComponent`, `AbstractRoute` | Base behavior with override points |
-| **Strategy** | Field types | Different validation rules and component sets per type |
+| **Registry/Factory** | `FieldFactory` | Field type definitions; creates `Fields\Field` instances |
+| **Template Method** | `AbstractComponent`, `AbstractRoute` | Base behavior with override points |
+| **Strategy** | Field type definitions | Per-type component, rules and sanitizer callables |
 | **Composition** | Fields → Components | Fields composed of Label, Input/Textarea, Error, HelpText |
 | **Registry** | `Validator` | Central store for validator functions (PHP) |
 | **Observer** | Custom events, WP hooks | Decoupled communication between form and fields |
@@ -402,11 +394,17 @@ WP_REST_Response (200)
 
 ### PHP
 
-**FieldFactory::register()** — Register custom field types:
+**`outstand_forms_field_factory` filter** — Register custom field types on the shared registry:
 
 ```php
-$factory = new FieldFactory();
-$factory->register('date', MyDateField::class);
+add_filter( 'outstand_forms_field_factory', function ( $factory ) {
+    $factory->register( 'slug', [
+        'rules'    => [ 'pattern' => '[a-z0-9-]+' ],
+        'sanitize' => 'sanitize_title',
+    ] );
+
+    return $factory;
+} );
 ```
 
 **`outstand_forms_validation_messages` filter** — Override validation messages:
