@@ -68,7 +68,7 @@ class ComponentsTest extends \WP_UnitTestCase {
 		);
 
 		$this->assertStringNotContainsString( 'data-inputmask', $markup );
-		$this->assertStringNotContainsString( 'data-wp-init--mask', $markup );
+		$this->assertStringNotContainsString( 'data-wp-init---mask', $markup );
 	}
 
 	/**
@@ -86,8 +86,8 @@ class ComponentsTest extends \WP_UnitTestCase {
 		);
 		$this->assertStringContainsString( 'data-wp-on--focus="actions.handleFieldFocus"', $markup );
 		$this->assertStringContainsString( 'data-wp-on--blur="actions.handleFieldBlur"', $markup );
-		$this->assertStringContainsString( 'data-wp-on--change="actions.handleFieldChange"', $markup );
-		$this->assertStringContainsString( 'data-wp-init--register="callbacks.registerField"', $markup );
+		$this->assertStringContainsString( 'data-wp-on--input="actions.handleFieldChange"', $markup );
+		$this->assertStringContainsString( 'data-wp-init---register="callbacks.registerField"', $markup );
 	}
 
 	/**
@@ -133,7 +133,7 @@ class ComponentsTest extends \WP_UnitTestCase {
 		$this->assertStringContainsString( 'required', $markup );
 		$this->assertStringContainsString( 'maxlength="200"', $markup );
 		$this->assertStringContainsString( 'data-wp-bind--aria-invalid="!state.isFieldValid"', $markup );
-		$this->assertStringContainsString( 'data-wp-init--register="callbacks.registerField"', $markup );
+		$this->assertStringContainsString( 'data-wp-init---register="callbacks.registerField"', $markup );
 	}
 
 	/**

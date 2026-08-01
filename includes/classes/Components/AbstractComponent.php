@@ -102,8 +102,8 @@ abstract class AbstractComponent implements ComponentInterface {
 			'data-wp-bind--aria-describedby' => 'state.fieldAriaDescribedByAttribute',
 			'data-wp-on--focus'              => 'actions.handleFieldFocus',
 			'data-wp-on--blur'               => 'actions.handleFieldBlur',
-			'data-wp-on--change'             => 'actions.handleFieldChange',
-			'data-wp-init--register'         => 'callbacks.registerField',
+			'data-wp-on--input'              => 'actions.handleFieldChange',
+			'data-wp-init---register'        => 'callbacks.registerField',
 		];
 	}
 

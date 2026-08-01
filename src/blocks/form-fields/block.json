@@ -24,7 +24,8 @@
     "spacing": {
       "margin": true,
       "padding": true
-    }
+    },
+    "interactivity": true
   },
   "editorScript": "file:./index.js",
   "style": "file:./style-index.css",

@@ -202,8 +202,8 @@ test.describe('Frontend form submission', () => {
 		const brokenInput = form.locator('input[name="field_2"]');
 
 		// Guard the fixture: the test is vacuous if the directives survived.
-		await expect(brokenInput).not.toHaveAttribute('data-wp-init--register');
-		await expect(brokenInput).not.toHaveAttribute('data-wp-on--change');
+		await expect(brokenInput).not.toHaveAttribute('data-wp-init---register');
+		await expect(brokenInput).not.toHaveAttribute('data-wp-on--input');
 
 		await form.locator('input[name="field_1"]').fill('user@example.com');
 		await brokenInput.fill('12345');
