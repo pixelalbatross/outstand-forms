@@ -29,6 +29,7 @@ Desktop.ini
 /PROGRESS.md
 /REVIEW.md
 /CODE-REVIEW.md
+/REVIEW-SOT-INTERACTIVITY.md
 .wp-env.override.json
 .phpunit.result.cache
 artifacts/
