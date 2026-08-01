@@ -9,6 +9,12 @@ import { store, getContext, getElement, withSyncEvent, withScope } from '@wordpr
 import { validate } from './../../validation';
 
 /**
+ * Maximum time, in milliseconds, to wait for a single field to respond to
+ * an `osf-field-validate` event before treating it as invalid.
+ */
+const FIELD_VALIDATION_TIMEOUT = 5000;
+
+/**
  * Flag the form as failed and surface the generic error message.
  *
  * @param {Object} context            The form context.
@@ -86,7 +92,11 @@ const { state, actions } = store('osf/form', {
 		 */
 		get isFormValid() {
 			const { formFields } = getContext('osf/form');
-			return Object.keys(formFields).length > 0 && Object.values(formFields).every(Boolean);
+
+			// An empty registry (no fields, or none registered yet) is
+			// vacuously valid: Object.values( {} ).every( Boolean ) is
+			// already true, so no explicit length check is needed.
+			return Object.values(formFields || {}).every(Boolean);
 		},
 	},
 	actions: {
@@ -163,6 +173,7 @@ const { state, actions } = store('osf/form', {
 			ev.preventDefault();
 
 			const context = getContext('osf/form');
+			const { submissionMessages = {} } = context;
 
 			// Guard against double-submit. Set synchronously, before the async
 			// validation round trip, so a second rapid submit is blocked even
@@ -194,7 +205,13 @@ const { state, actions } = store('osf/form', {
 					form.dispatchEvent(event);
 				})
 				.catch(() => {
+					// Reachable when a field never responds to
+					// `osf-field-validate` and its per-field wait in
+					// validateForm() times out. Surface the same
+					// submission error the fetch path shows, rather than
+					// leaving the button frozen in a submitting state.
 					form.removeEventListener('osf-form-validated', handleValidated);
+					setSubmissionError(context, submissionMessages);
 					context.isSubmitting = false;
 				});
 		}),
@@ -262,16 +279,29 @@ const { state, actions } = store('osf/form', {
 
 			const fieldNames = Object.keys(formFields || {});
 			const validations = fieldNames.map((fieldName) => {
-				return new Promise((resolve) => {
+				return new Promise((resolve, reject) => {
 					const fieldElement = form.querySelector(`[name="${fieldName}"]`);
 					if (!fieldElement) {
 						return resolve();
 					}
 
 					const validationHandler = () => {
+						clearTimeout(timeoutId);
 						fieldElement.removeEventListener('osf-field-validated', validationHandler);
 						resolve();
 					};
+
+					// Bound the wait: if the field's validate directive
+					// never attached (failed view script, removed element,
+					// an error thrown before it dispatches its response)
+					// this promise would otherwise never settle and
+					// Promise.all() would hang forever. Reject so the
+					// field is treated as invalid rather than silently
+					// passing validation.
+					const timeoutId = setTimeout(() => {
+						fieldElement.removeEventListener('osf-field-validated', validationHandler);
+						reject(new Error(`Field "${fieldName}" timed out during validation.`));
+					}, FIELD_VALIDATION_TIMEOUT);
 
 					fieldElement.addEventListener('osf-field-validated', validationHandler, {
 						once: true,
