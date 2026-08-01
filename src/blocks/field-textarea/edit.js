@@ -63,6 +63,7 @@ export default function FieldTextareaEdit({ attributes, setAttributes, context, 
 		className: clsx(
 			'osf-field',
 			'osf-field-textarea',
+			`osf-field--label-${labelPosition}`,
 			`osf-field-textarea--label-${labelPosition}`,
 			`osf-field-textarea--help-${helpTextPosition}`,
 			{

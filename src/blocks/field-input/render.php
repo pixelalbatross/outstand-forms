@@ -38,6 +38,7 @@ $wrapper_classes = [
 	'osf-field',
 	'osf-field-input',
 	"osf-field-input--{$field_type}",
+	"osf-field--label-{$label_position}",
 	"osf-field-input--label-{$label_position}",
 	"osf-field-input--help-{$help_text_position}",
 	$required ? 'osf-field-input--required' : '',
@@ -57,7 +58,6 @@ $wrapper_attributes = get_block_wrapper_attributes(
 
 $context = wp_interactivity_data_wp_context(
 	[
-		'type'            => $field_type,
 		'value'           => $default_value,
 		'isValid'         => true,
 		'isFocused'       => false,

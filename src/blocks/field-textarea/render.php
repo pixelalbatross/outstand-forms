@@ -36,6 +36,7 @@ $field   = $factory->create( 'textarea', $attributes );
 $wrapper_classes = [
 	'osf-field',
 	'osf-field-textarea',
+	"osf-field--label-{$label_position}",
 	"osf-field-textarea--label-{$label_position}",
 	"osf-field-textarea--help-{$help_text_position}",
 	$required ? 'osf-field-textarea--required' : '',

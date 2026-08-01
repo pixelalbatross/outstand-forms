@@ -67,6 +67,7 @@ export default function FieldInputEdit({ attributes, setAttributes, context, cli
 			'osf-field',
 			'osf-field-input',
 			`osf-field-input--${type}`,
+			`osf-field--label-${labelPosition}`,
 			`osf-field-input--label-${labelPosition}`,
 			`osf-field-input--help-${helpTextPosition}`,
 			{
