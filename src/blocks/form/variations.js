@@ -14,7 +14,6 @@ const variations = [
 		title: __('Blank', 'outstand-forms'),
 		isDefault: true,
 		attributes: {
-			type: 'inline',
 			nextFieldId: 2,
 		},
 		icon: blank,
