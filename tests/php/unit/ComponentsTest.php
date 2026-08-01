@@ -103,6 +103,28 @@ class ComponentsTest extends \WP_UnitTestCase {
 	}
 
 	/**
+	 * Textarea has no `value` attribute; its default value must render as
+	 * escaped inner text instead, since HTML textareas have no value attribute.
+	 */
+	public function test_textarea_markup_renders_default_value_as_inner_text(): void {
+		$markup = $this->field_markup(
+			'textarea',
+			[
+				'fieldId'      => 1,
+				'defaultValue' => 'Hello <script>alert(1)</script> & "quotes"',
+			]
+		);
+
+		// Must not match a real value attribute, while tolerating the
+		// data-wp-bind--value directive, which legitimately contains "value=".
+		$this->assertDoesNotMatchRegularExpression( '/<textarea[^>]*\svalue=/', $markup );
+		$this->assertStringContainsString(
+			'>Hello &lt;script&gt;alert(1)&lt;/script&gt; &amp; &quot;quotes&quot;</textarea>',
+			$markup
+		);
+	}
+
+	/**
 	 * Name and id attributes must resolve through the field.
 	 */
 	public function test_input_markup_uses_resolved_name_and_id(): void {

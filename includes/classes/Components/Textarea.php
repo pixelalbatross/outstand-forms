@@ -29,63 +29,28 @@ class Textarea extends AbstractComponent {
 		$min_length    = $rules['minLength'] ?? 0;
 		$max_length    = $rules['maxLength'] ?? 0;
 
-		$conditional_attrs = [
-			'{required}'        => $required ? 'required' : '',
-			'{placeholder}'     => $placeholder ? sprintf( 'placeholder="%s"', esc_attr( $placeholder ) ) : '',
-			'{autocomplete}'    => $autocomplete ? sprintf( 'autocomplete="%s"', esc_attr( $autocomplete ) ) : '',
-			'{min_length}'      => $min_length ? sprintf( 'minlength="%s"', esc_attr( $min_length ) ) : '',
-			'{max_length}'      => $max_length ? sprintf( 'maxlength="%s"', esc_attr( $max_length ) ) : '',
-			'{rows}'            => $rows ? sprintf( 'rows="%s"', esc_attr( $rows ) ) : '',
-			'{cols}'            => $cols ? sprintf( 'cols="%s"', esc_attr( $cols ) ) : '',
-			'{mask_attribute}'  => $mask ? sprintf( 'data-inputmask="\'mask\': \'%s\'"', esc_attr( $mask ) ) : '',
-			'{mask_directive}'  => $mask ? 'data-wp-init--mask="callbacks.initMask"' : '',
-			'{aria_required}'   => $required ? 'aria-required="true"' : '',
-			'{aria_label}'      => $aria_label ? sprintf( 'aria-label="%s"', esc_attr( $aria_label ) ) : '',
-			'{aria_labelledby}' => $label_id ? sprintf( 'aria-labelledby="%s"', esc_attr( $label_id ) ) : '',
-		];
+		$html_attributes = [
+			'id'                 => $field_id,
+			'name'               => $field_name,
+			'required'           => $required,
+			'placeholder'        => $placeholder ?: null,
+			'autocomplete'       => $autocomplete ?: null,
+			'minlength'          => $min_length ?: null,
+			'maxlength'          => $max_length ?: null,
+			'rows'               => $rows ?: null,
+			'cols'               => $cols ?: null,
+			'data-inputmask'     => $mask ? "'mask': '{$mask}'" : null,
+			'data-wp-init--mask' => $mask ? 'callbacks.initMask' : null,
+			'aria-required'      => $required ? 'true' : null,
+			'aria-label'         => $aria_label ?: null,
+			'aria-labelledby'    => $label_id ?: null,
+			'class'              => 'osf-field__textarea',
+		] + $this->get_interactivity_directives();
 
-		$template = '<textarea
-			id="{id}"
-			name="{name}"
-			value="{value}"
-			{required}
-			{placeholder}
-			{autocomplete}
-			{min_length}
-			{max_length}
-			{rows}
-			{cols}
-			{mask_attribute}
-			{mask_directive}
-			{aria_required}
-			{aria_label}
-			{aria_labelledby}
-			class="osf-field__textarea"
-			data-wp-bind--value="context.value"
-			data-wp-bind--aria-invalid="!context.isValid"
-			data-wp-bind--aria-describedby="state.fieldAriaDescribedByAttribute"
-			data-wp-on--focus="actions.handleFieldFocus"
-			data-wp-on--blur="actions.handleFieldBlur"
-			data-wp-on--change="actions.handleFieldChange"
-			data-wp-init--register="callbacks.registerField"
-			data-wp-on--osf-field-validate="actions.handleFieldValidate"
-			data-wp-on--osf-field-server-error="actions.handleFieldServerErrors"
-		></textarea>';
-
-		$replacements = array_merge(
-			[
-				'{id}'    => esc_attr( $field_id ),
-				'{name}'  => esc_attr( $field_name ),
-				'{value}' => esc_attr( $default_value ),
-			],
-			$conditional_attrs
+		return sprintf(
+			'<textarea %s>%s</textarea>',
+			$this->build_attributes( $html_attributes ),
+			esc_textarea( $default_value )
 		);
-
-		$markup = strtr( $template, $replacements );
-
-		$markup = preg_replace( '/\s+/', ' ', $markup );
-		$markup = trim( $markup );
-
-		return $markup;
 	}
 }

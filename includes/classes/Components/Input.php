@@ -54,69 +54,28 @@ class Input extends AbstractComponent {
 		$step          = $is_number ? ( $attributes['step'] ?? 1 ) : 0;
 		$mask          = $supports_mask ? ( $attributes['mask'] ?? '' ) : '';
 
-		$conditional_attrs = [
-			'{required}'        => $required ? 'required' : '',
-			'{placeholder}'     => $placeholder ? sprintf( 'placeholder="%s"', esc_attr( $placeholder ) ) : '',
-			'{autocomplete}'    => $autocomplete ? sprintf( 'autocomplete="%s"', esc_attr( $autocomplete ) ) : '',
-			'{min_length}'      => $min_length ? sprintf( 'minlength="%d"', esc_attr( $min_length ) ) : '',
-			'{max_length}'      => $max_length ? sprintf( 'maxlength="%d"', esc_attr( $max_length ) ) : '',
-			'{step}'            => $step ? sprintf( 'step="%s"', esc_attr( $step ) ) : '',
-			'{min}'             => null !== $min ? sprintf( 'min="%s"', esc_attr( $min ) ) : '',
-			'{max}'             => null !== $max ? sprintf( 'max="%s"', esc_attr( $max ) ) : '',
-			'{pattern}'         => $pattern ? sprintf( 'pattern="%s"', esc_attr( $pattern ) ) : '',
-			'{mask_attribute}'  => $mask ? sprintf( 'data-inputmask="\'mask\': \'%s\'"', esc_attr( $mask ) ) : '',
-			'{mask_directive}'  => $mask ? 'data-wp-init--mask="callbacks.initMask"' : '',
-			'{aria_required}'   => $required ? 'aria-required="true"' : '',
-			'{aria_label}'      => $aria_label ? sprintf( 'aria-label="%s"', esc_attr( $aria_label ) ) : '',
-			'{aria_labelledby}' => $label_id ? sprintf( 'aria-labelledby="%s"', esc_attr( $label_id ) ) : '',
-		];
+		$html_attributes = [
+			'type'               => $this->input_type,
+			'id'                 => $field_id,
+			'name'               => $field_name,
+			'value'              => $default_value,
+			'required'           => $required,
+			'placeholder'        => $placeholder ?: null,
+			'autocomplete'       => $autocomplete ?: null,
+			'minlength'          => $min_length ?: null,
+			'maxlength'          => $max_length ?: null,
+			'step'               => $step ?: null,
+			'min'                => $min,
+			'max'                => $max,
+			'pattern'            => $pattern ?: null,
+			'data-inputmask'     => $mask ? "'mask': '{$mask}'" : null,
+			'data-wp-init--mask' => $mask ? 'callbacks.initMask' : null,
+			'aria-required'      => $required ? 'true' : null,
+			'aria-label'         => $aria_label ?: null,
+			'aria-labelledby'    => $label_id ?: null,
+			'class'              => "osf-field__input osf-field__input--{$this->input_type}",
+		] + $this->get_interactivity_directives();
 
-		$template = '<input
-			type="{type}"
-			id="{id}"
-			name="{name}"
-			value="{value}"
-			{required}
-			{placeholder}
-			{autocomplete}
-			{min_length}
-			{max_length}
-			{step}
-			{min}
-			{max}
-			{pattern}
-			{mask_attribute}
-			{mask_directive}
-			{aria_required}
-			{aria_label}
-			{aria_labelledby}
-			class="osf-field__input osf-field__input--{type}"
-			data-wp-bind--value="context.value"
-			data-wp-bind--aria-invalid="!context.isValid"
-			data-wp-bind--aria-describedby="state.fieldAriaDescribedByAttribute"
-			data-wp-on--focus="actions.handleFieldFocus"
-			data-wp-on--blur="actions.handleFieldBlur"
-			data-wp-on--change="actions.handleFieldChange"
-			data-wp-init--register="callbacks.registerField"
-			data-wp-on--osf-field-validate="actions.handleFieldValidate"
-			data-wp-on--osf-field-server-error="actions.handleFieldServerErrors"
-		/>';
-
-		$replacements = array_merge(
-			[
-				'{type}'  => esc_attr( $this->input_type ),
-				'{id}'    => esc_attr( $field_id ),
-				'{name}'  => esc_attr( $field_name ),
-				'{value}' => esc_attr( $default_value ),
-			],
-			$conditional_attrs
-		);
-
-		$markup = strtr( $template, $replacements );
-
-		$markup = preg_replace( '/\s+/', ' ', $markup );
-		$markup = trim( $markup );
-
-		return $markup;
+		return sprintf( '<input %s />', $this->build_attributes( $html_attributes ) );
 	}
 }

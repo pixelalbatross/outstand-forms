@@ -85,4 +85,51 @@ abstract class AbstractComponent implements ComponentInterface {
 	protected function get_field_error_id(): string {
 		return $this->field->get_error_id();
 	}
+
+	/**
+	 * Get the Interactivity API directives shared by all field controls.
+	 *
+	 * @return array
+	 */
+	protected function get_interactivity_directives(): array {
+		return [
+			'data-wp-bind--value'                => 'context.value',
+			'data-wp-bind--aria-invalid'         => '!context.isValid',
+			'data-wp-bind--aria-describedby'     => 'state.fieldAriaDescribedByAttribute',
+			'data-wp-on--focus'                  => 'actions.handleFieldFocus',
+			'data-wp-on--blur'                   => 'actions.handleFieldBlur',
+			'data-wp-on--change'                 => 'actions.handleFieldChange',
+			'data-wp-init--register'             => 'callbacks.registerField',
+			'data-wp-on--osf-field-validate'     => 'actions.handleFieldValidate',
+			'data-wp-on--osf-field-server-error' => 'actions.handleFieldServerErrors',
+		];
+	}
+
+	/**
+	 * Build an HTML attribute string from an associative array.
+	 *
+	 * Entries whose value is `null` or `false` are omitted. Entries whose
+	 * value is `true` are rendered as bare boolean attributes.
+	 *
+	 * @param array $attributes Attribute name/value pairs.
+	 * @return string
+	 */
+	protected function build_attributes( array $attributes ): string {
+		$pairs = [];
+
+		foreach ( $attributes as $name => $value ) {
+			if ( null === $value || false === $value ) {
+				continue;
+			}
+
+			if ( true === $value ) {
+				$pairs[] = esc_attr( $name );
+				continue;
+			}
+
+			$pairs[] = sprintf( '%s="%s"', esc_attr( $name ), esc_attr( $value ) );
+		}
+
+		return implode( ' ', $pairs );
+	}
 }
