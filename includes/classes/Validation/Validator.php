@@ -134,7 +134,7 @@ class Validator {
 	 * @return bool
 	 */
 	protected function validate_email( mixed $value, array $params, mixed $config ): bool {
-		if ( ! $config || empty( $value ) ) {
+		if ( ! $config || $this->is_absent( $value ) ) {
 			return true;
 		}
 
@@ -150,7 +150,7 @@ class Validator {
 	 * @return bool
 	 */
 	protected function validate_url( mixed $value, array $params, mixed $config ): bool {
-		if ( ! $config || empty( $value ) ) {
+		if ( ! $config || $this->is_absent( $value ) ) {
 			return true;
 		}
 
@@ -166,7 +166,7 @@ class Validator {
 	 * @return bool
 	 */
 	protected function validate_min_length( mixed $value, array $params, mixed $config ): bool {
-		if ( empty( $value ) || ! is_numeric( $config ) ) {
+		if ( $this->is_absent( $value ) || ! is_numeric( $config ) ) {
 			return true;
 		}
 
@@ -182,7 +182,7 @@ class Validator {
 	 * @return bool
 	 */
 	protected function validate_max_length( mixed $value, array $params, mixed $config ): bool {
-		if ( empty( $value ) || ! is_numeric( $config ) ) {
+		if ( $this->is_absent( $value ) || ! is_numeric( $config ) ) {
 			return true;
 		}
 
@@ -233,7 +233,7 @@ class Validator {
 	 * @return bool
 	 */
 	protected function validate_pattern( mixed $value, array $params, mixed $config ): bool {
-		if ( empty( $value ) || ! is_string( $config ) || '' === $config ) {
+		if ( $this->is_absent( $value ) || ! is_string( $config ) || '' === $config ) {
 			return true;
 		}
 
@@ -243,5 +243,20 @@ class Validator {
 		// Suppress warnings from invalid regex.
 		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 		return (bool) @preg_match( $delimiter . '^(?:' . $config . ')$' . $delimiter, (string) $value );
+	}
+
+	/**
+	 * Determine whether a value counts as "absent" for rule guards.
+	 *
+	 * A value is only considered absent when it is an empty string or null.
+	 * Falsy-but-present values such as the string "0", the number 0, or the
+	 * boolean false are treated as real values and must go through the
+	 * relevant rule, mirroring the client-side validator in src/validation.js.
+	 *
+	 * @param mixed $value The value to check.
+	 * @return bool
+	 */
+	private function is_absent( mixed $value ): bool {
+		return '' === $value || null === $value;
 	}
 }

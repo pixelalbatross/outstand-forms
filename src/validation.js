@@ -32,12 +32,33 @@ const URL_REGEX =
 const regexCache = new Map();
 
 /**
+ * Determine whether a value counts as "absent" for rule guards.
+ *
+ * A value is only considered absent when it is an empty string, null, or
+ * undefined. Falsy-but-present values such as the string "0", the number 0,
+ * or the boolean false are treated as real values and must go through the
+ * relevant rule, mirroring the server-side validator in Validator.php.
+ *
+ * @param {*} value The value to check.
+ * @return {boolean} True if the value is absent.
+ */
+function isAbsent(value) {
+	return value === '' || value === null || value === undefined;
+}
+
+/**
  * Validate that a value is present and non-empty.
  *
- * @param {*} value The value to validate.
+ * @param {*}      value  The value to validate.
+ * @param {Object} params Extra parameters (unused).
+ * @param {*}      config The raw rule config. A falsy config disables the rule.
  * @return {boolean} True if the value is non-empty.
  */
-function required(value) {
+function required(value, params, config) {
+	if (!config) {
+		return true;
+	}
+
 	if (value === undefined || value === null) {
 		return false;
 	}
@@ -52,7 +73,7 @@ function required(value) {
  * @return {boolean} True if empty or a valid email.
  */
 function email(value) {
-	if (!value) {
+	if (isAbsent(value)) {
 		return true;
 	}
 
@@ -66,7 +87,7 @@ function email(value) {
  * @return {boolean} True if empty or a valid URL.
  */
 function url(value) {
-	if (!value) {
+	if (isAbsent(value)) {
 		return true;
 	}
 
@@ -86,7 +107,7 @@ function url(value) {
  * @return {boolean} True if empty, no pattern provided, or the value matches.
  */
 function pattern(value, patternStr = '') {
-	if (!value || !patternStr) {
+	if (isAbsent(value) || !patternStr) {
 		return true;
 	}
 
@@ -112,7 +133,7 @@ function pattern(value, patternStr = '') {
  * @return {boolean} True if empty, length is 0, or the value meets the minimum.
  */
 function minLength(value, length = 0) {
-	if (value === '' || value === null || value === undefined || length === 0) {
+	if (isAbsent(value) || length === 0) {
 		return true;
 	}
 
@@ -129,7 +150,7 @@ function minLength(value, length = 0) {
  * @return {boolean} True if empty, length is 0, or the value is within the limit.
  */
 function maxLength(value, length = 0) {
-	if (value === '' || value === null || value === undefined || length === 0) {
+	if (isAbsent(value) || length === 0) {
 		return true;
 	}
 
@@ -144,7 +165,7 @@ function maxLength(value, length = 0) {
  * @return {boolean} True if empty, non-numeric, or the value meets the minimum.
  */
 function min(value, minValue = 0) {
-	if (value === '' || value === null || value === undefined || isNaN(value)) {
+	if (isAbsent(value) || isNaN(value)) {
 		return true;
 	}
 
@@ -159,7 +180,7 @@ function min(value, minValue = 0) {
  * @return {boolean} True if empty, non-numeric, or the value is within the limit.
  */
 function max(value, maxValue = 0) {
-	if (value === '' || value === null || value === undefined || isNaN(value)) {
+	if (isAbsent(value) || isNaN(value)) {
 		return true;
 	}
 
@@ -208,7 +229,7 @@ export function validate(value, rules = {}) {
 		}
 
 		const params = ruleConfig === true ? {} : ruleConfig;
-		const isValid = validator(value, params);
+		const isValid = validator(value, params, ruleConfig);
 
 		if (!isValid) {
 			errors.push(ruleName);

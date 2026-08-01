@@ -166,5 +166,383 @@
 		"rules": { "required": true, "email": true, "maxLength": 50 },
 		"is_valid": true,
 		"errors": []
+	},
+	{
+		"description": "required passes on string \"0\" (not treated as absent)",
+		"value": "0",
+		"rules": { "required": true },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "required passes on number 0 (not treated as absent)",
+		"value": 0,
+		"rules": { "required": true },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "required passes on boolean false (not treated as absent)",
+		"value": false,
+		"rules": { "required": true },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "required fails on null",
+		"value": null,
+		"rules": { "required": true },
+		"is_valid": false,
+		"errors": [ "required" ]
+	},
+	{
+		"description": "minLength passes at boundary for string \"0\"",
+		"value": "0",
+		"rules": { "minLength": 1 },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "minLength fails above boundary for string \"0\"",
+		"value": "0",
+		"rules": { "minLength": 2 },
+		"is_valid": false,
+		"errors": [ "minLength" ]
+	},
+	{
+		"description": "minLength passes at boundary for number 0",
+		"value": 0,
+		"rules": { "minLength": 1 },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "minLength fails above boundary for number 0",
+		"value": 0,
+		"rules": { "minLength": 2 },
+		"is_valid": false,
+		"errors": [ "minLength" ]
+	},
+	{
+		"description": "maxLength passes for string \"0\"",
+		"value": "0",
+		"rules": { "maxLength": 1 },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "maxLength passes for number 0",
+		"value": 0,
+		"rules": { "maxLength": 1 },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "minLength passes on empty string (genuinely absent, skips regardless of minimum)",
+		"value": "",
+		"rules": { "minLength": 3 },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "minLength passes on null (genuinely absent, skips regardless of minimum)",
+		"value": null,
+		"rules": { "minLength": 3 },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "maxLength passes on empty string (genuinely absent, skips regardless of maximum)",
+		"value": "",
+		"rules": { "maxLength": 3 },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "maxLength passes on null (genuinely absent, skips regardless of maximum)",
+		"value": null,
+		"rules": { "maxLength": 3 },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "pattern passes on string \"0\" against digit pattern",
+		"value": "0",
+		"rules": { "pattern": "[0-9]+" },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "pattern passes on number 0 against digit pattern",
+		"value": 0,
+		"rules": { "pattern": "[0-9]+" },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "pattern fails on string \"0\" against a non-digit pattern",
+		"value": "0",
+		"rules": { "pattern": "[a-z]+" },
+		"is_valid": false,
+		"errors": [ "pattern" ]
+	},
+	{
+		"description": "email fails on string \"0\" (not an absent value, but not a valid address)",
+		"value": "0",
+		"rules": { "email": true },
+		"is_valid": false,
+		"errors": [ "email" ]
+	},
+	{
+		"description": "email fails on number 0 (not an absent value, but not a valid address)",
+		"value": 0,
+		"rules": { "email": true },
+		"is_valid": false,
+		"errors": [ "email" ]
+	},
+	{
+		"description": "url fails on string \"0\" (not an absent value, but not a valid URL)",
+		"value": "0",
+		"rules": { "url": true },
+		"is_valid": false,
+		"errors": [ "url" ]
+	},
+	{
+		"description": "url fails on number 0 (not an absent value, but not a valid URL)",
+		"value": 0,
+		"rules": { "url": true },
+		"is_valid": false,
+		"errors": [ "url" ]
+	},
+	{
+		"description": "min passes at boundary for string \"0\"",
+		"value": "0",
+		"rules": { "min": 0 },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "min passes at boundary for number 0",
+		"value": 0,
+		"rules": { "min": 0 },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "min fails below boundary for string \"0\"",
+		"value": "0",
+		"rules": { "min": 1 },
+		"is_valid": false,
+		"errors": [ "min" ]
+	},
+	{
+		"description": "max passes at boundary for number 0",
+		"value": 0,
+		"rules": { "max": 0 },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "max fails above boundary for number 0",
+		"value": 0,
+		"rules": { "max": -1 },
+		"is_valid": false,
+		"errors": [ "max" ]
+	},
+	{
+		"description": "pattern passes on non-string number against digit pattern",
+		"value": 42,
+		"rules": { "pattern": "[0-9]+" },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "email fails on a non-string number",
+		"value": 42,
+		"rules": { "email": true },
+		"is_valid": false,
+		"errors": [ "email" ]
+	},
+	{
+		"description": "minLength counts a single-codepoint emoji as one character at the boundary",
+		"value": "😀😀😀",
+		"rules": { "minLength": 3 },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "minLength fails just below the boundary for emoji",
+		"value": "😀😀",
+		"rules": { "minLength": 3 },
+		"is_valid": false,
+		"errors": [ "minLength" ]
+	},
+	{
+		"description": "maxLength counts a base letter plus combining accent as two codepoints at the boundary",
+		"value": "café",
+		"rules": { "maxLength": 5 },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "maxLength fails just above the boundary for a combining accent sequence",
+		"value": "café",
+		"rules": { "maxLength": 4 },
+		"is_valid": false,
+		"errors": [ "maxLength" ]
+	},
+	{
+		"description": "required rule is disabled when config is falsy (0)",
+		"value": "",
+		"rules": { "required": 0 },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "minLength with a string config value behaves like a numeric config (boundary pass)",
+		"value": "abc",
+		"rules": { "minLength": "3" },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "minLength with a string config value behaves like a numeric config (below boundary)",
+		"value": "ab",
+		"rules": { "minLength": "3" },
+		"is_valid": false,
+		"errors": [ "minLength" ]
+	},
+	{
+		"description": "pattern rule is disabled when config is an empty string",
+		"value": "anything",
+		"rules": { "pattern": "" },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "email valid: plus-addressing",
+		"value": "user+tag@example.com",
+		"rules": { "email": true },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "email valid: multi-level subdomain",
+		"value": "user@mail.example.co.uk",
+		"rules": { "email": true },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "email valid: IP address host",
+		"value": "user@192.168.1.1",
+		"rules": { "email": true },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "email valid: single-label domain (missing TLD is accepted by this regex)",
+		"value": "user@example",
+		"rules": { "email": true },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "email invalid: trailing dot on domain",
+		"value": "user@example.com.",
+		"rules": { "email": true },
+		"is_valid": false,
+		"errors": [ "email" ]
+	},
+	{
+		"description": "email valid: punycode-encoded IDN domain",
+		"value": "user@xn--nxasmq6b.com",
+		"rules": { "email": true },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "email invalid: raw unicode IDN domain is rejected by this ASCII-only regex",
+		"value": "user@exämple.com",
+		"rules": { "email": true },
+		"is_valid": false,
+		"errors": [ "email" ]
+	},
+	{
+		"description": "email valid: minimal short address",
+		"value": "a@b.co",
+		"rules": { "email": true },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "url valid: subdomain",
+		"value": "https://sub.example.com",
+		"rules": { "url": true },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "url valid: explicit port with path",
+		"value": "https://example.com:8080/path",
+		"rules": { "url": true },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "url valid: IP host with port",
+		"value": "http://192.168.1.1:3000",
+		"rules": { "url": true },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "url invalid: missing TLD",
+		"value": "https://example",
+		"rules": { "url": true },
+		"is_valid": false,
+		"errors": [ "url" ]
+	},
+	{
+		"description": "url invalid: trailing dot on domain",
+		"value": "https://example.com.",
+		"rules": { "url": true },
+		"is_valid": false,
+		"errors": [ "url" ]
+	},
+	{
+		"description": "url invalid: raw unicode IDN domain is rejected by this ASCII-only regex",
+		"value": "https://münchen.de",
+		"rules": { "url": true },
+		"is_valid": false,
+		"errors": [ "url" ]
+	},
+	{
+		"description": "url valid: punycode-encoded IDN domain",
+		"value": "https://xn--mnchen-3ya.de",
+		"rules": { "url": true },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "url invalid: unsupported scheme",
+		"value": "ftp://example.com",
+		"rules": { "url": true },
+		"is_valid": false,
+		"errors": [ "url" ]
+	},
+	{
+		"description": "url valid: localhost with port and path",
+		"value": "https://localhost:3000/test",
+		"rules": { "url": true },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "url valid: out-of-range IP octets are accepted since this regex only checks digit shape",
+		"value": "https://999.999.999.999",
+		"rules": { "url": true },
+		"is_valid": true,
+		"errors": []
 	}
 ]
