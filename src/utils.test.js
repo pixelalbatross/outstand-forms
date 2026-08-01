@@ -2,7 +2,7 @@
 /**
  * Internal dependencies
  */
-import { getBlockId, findBlocks } from './utils';
+import { getBlockId, findBlocks, resolveFieldName } from './utils';
 
 describe('getBlockId', () => {
 	it('returns an id of the requested length', () => {
@@ -53,5 +53,27 @@ describe('findBlocks', () => {
 
 	it('defaults to an empty block list', () => {
 		expect(findBlocks(() => true)).toEqual([]);
+	});
+});
+
+describe('resolveFieldName', () => {
+	it('returns the explicit name when set', () => {
+		expect(resolveFieldName({ name: 'email', fieldId: 'abc123456' })).toBe('email');
+	});
+
+	it('falls back to field_{fieldId} when the name is an empty string', () => {
+		expect(resolveFieldName({ name: '', fieldId: 'abc123456' })).toBe('field_abc123456');
+	});
+
+	it('keeps a whitespace-only name, matching PHP empty() semantics', () => {
+		expect(resolveFieldName({ name: '   ', fieldId: 'abc123456' })).toBe('   ');
+	});
+
+	it('falls back to field_{fieldId} when the name is the string "0"', () => {
+		expect(resolveFieldName({ name: '0', fieldId: 'abc123456' })).toBe('field_abc123456');
+	});
+
+	it('falls back to field_{fieldId} when the name is missing', () => {
+		expect(resolveFieldName({ fieldId: 'abc123456' })).toBe('field_abc123456');
 	});
 });

@@ -7,20 +7,7 @@ import { store as blockEditorStore } from '@wordpress/block-editor';
 /**
  * Internal dependencies
  */
-import { findBlocks, isFieldBlock } from '../utils';
-
-/**
- * Resolve the submission name for a field block.
- *
- * Mirrors AbstractField::get_field_name(): an explicit `name` attribute wins,
- * otherwise the name falls back to `field_{fieldId}`.
- *
- * @param {Object} attributes The field block attributes.
- * @return {string} The resolved field name.
- */
-function resolveFieldName(attributes) {
-	return attributes?.name || `field_${attributes?.fieldId}`;
-}
+import { findBlocks, isFieldBlock, resolveFieldName } from '../utils';
 
 /**
  * Checks if another field in the same form resolves to the same submission name.

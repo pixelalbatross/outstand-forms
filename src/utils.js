@@ -38,6 +38,29 @@ export function isFieldBlock(block) {
 }
 
 /**
+ * Resolve the submission name for a field block.
+ *
+ * Mirrors `AbstractField::get_field_name()` (PHP): an explicit `name`
+ * attribute wins, otherwise the name falls back to `field_{fieldId}`. The PHP
+ * side checks `! empty( $name )`, which treats `null`, `undefined`, `''` and
+ * the string `"0"` as absent — but NOT a whitespace-only string, since PHP's
+ * `empty()` only considers a non-empty string falsy when it equals `'0'`.
+ * Match that exactly here rather than using a plain JS truthiness check,
+ * which would treat `"0"` as a valid name.
+ *
+ * @param {Object} attributes           The field block attributes.
+ * @param {string} [attributes.name]    The explicit field name, if set.
+ * @param {string} [attributes.fieldId] The field's block ID.
+ * @return {string} The resolved field name.
+ */
+export function resolveFieldName(attributes) {
+	const name = attributes?.name;
+	const isNameAbsent = name === undefined || name === null || name === '' || name === '0';
+
+	return isNameAbsent ? `field_${attributes?.fieldId}` : name;
+}
+
+/**
  * Recursively finds all blocks that match a given condition.
  *
  * This function searches through a list of blocks and all their inner blocks,

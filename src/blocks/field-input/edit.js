@@ -30,6 +30,7 @@ import { __ } from '@wordpress/i18n';
  */
 import { labelPositionOptions, helpTextPositionOptions, autocompleteOptions } from '../../options';
 import { useIsDuplicateFieldName } from '../../hooks/useIsDuplicateFieldName';
+import { resolveFieldName } from '../../utils';
 import Field from '../../fields';
 
 export default function FieldInputEdit({ attributes, setAttributes, context, clientId }) {
@@ -279,7 +280,7 @@ export default function FieldInputEdit({ attributes, setAttributes, context, cli
 			<InspectorAdvancedControls>
 				<TextControl
 					label={__('Name', 'outstand-forms')}
-					value={fieldName || `field_${fieldId}`}
+					value={resolveFieldName({ name: fieldName, fieldId })}
 					onChange={onNameChange}
 					autoComplete="off"
 					__next40pxDefaultSize
