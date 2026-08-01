@@ -224,15 +224,21 @@ add_filter( 'outstand_forms_field_factory', function( $factory ) {
         'rules'     => [ 'pattern' => '[a-z0-9-]+' ],
         // Optional. Defaults to sanitize_text_field.
         'sanitize'  => 'sanitize_title',
+        // Optional. Editor control that renders the type. Defaults to 'input',
+        // which is what makes the type an osf/field-input variation.
+        'control'   => 'input',
+        // Optional. Label shown in the editor. Defaults to the capitalized type.
+        'label'     => 'Slug',
     ] );
 
     return $factory;
 } );
 ```
 
-Note: the `osf/field-input` block only offers the built-in types in the editor,
-so a custom type currently needs its own block (or a `block.json` override) to be
-selectable there.
+A type left on the default `input` control needs nothing else: it becomes an
+`osf/field-input` block variation, and the fields wrapper accepts it in the
+inserter automatically. A type that needs its own control ships its own block and
+names it through `block`.
 
 ### Custom Validators
 

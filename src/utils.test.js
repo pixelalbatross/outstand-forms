@@ -5,10 +5,12 @@
 import {
 	getBlockId,
 	findBlocks,
+	getFieldBlockNames,
 	getFieldTypes,
 	getFormActionIds,
 	getHelpTextPositions,
 	getLabelPositions,
+	getPrioritizedInserterBlocks,
 	isFieldBlock,
 	isInlineLabelPosition,
 	resolveFieldControl,
@@ -65,6 +67,98 @@ describe('findBlocks', () => {
 
 	it('defaults to an empty block list', () => {
 		expect(findBlocks(() => true)).toEqual([]);
+	});
+});
+
+describe('getFieldBlockNames', () => {
+	afterEach(() => {
+		delete global.osfSettings;
+	});
+
+	it('returns an empty array when osfSettings is undefined', () => {
+		expect(getFieldBlockNames()).toEqual([]);
+	});
+
+	it('returns an empty array when fieldBlockNames is not an array', () => {
+		global.osfSettings = { fieldBlockNames: 'nope' };
+
+		expect(getFieldBlockNames()).toEqual([]);
+	});
+
+	it('returns the names declared by PHP', () => {
+		global.osfSettings = { fieldBlockNames: ['osf/field-input', 'osf/field-textarea'] };
+
+		expect(getFieldBlockNames()).toEqual(['osf/field-input', 'osf/field-textarea']);
+	});
+});
+
+describe('getPrioritizedInserterBlocks', () => {
+	afterEach(() => {
+		delete global.osfSettings;
+	});
+
+	it('returns an empty array when nothing was localized', () => {
+		expect(getPrioritizedInserterBlocks()).toEqual([]);
+	});
+
+	it('offers an input-controlled type as its block variation', () => {
+		global.osfSettings = {
+			fieldBlockNames: ['osf/field-input'],
+			fieldTypes: [{ type: 'email', control: 'input' }],
+		};
+
+		expect(getPrioritizedInserterBlocks()).toEqual(['osf/field-input/email']);
+	});
+
+	it('offers a type with its own control as a plain block', () => {
+		global.osfSettings = {
+			fieldBlockNames: ['osf/field-textarea'],
+			fieldTypes: [{ type: 'textarea', control: 'textarea' }],
+		};
+
+		expect(getPrioritizedInserterBlocks()).toEqual(['osf/field-textarea']);
+	});
+
+	it('preserves registration order and deduplicates repeated blocks', () => {
+		global.osfSettings = {
+			fieldBlockNames: ['osf/field-input', 'osf/field-textarea'],
+			fieldTypes: [
+				{ type: 'text', control: 'input' },
+				{ type: 'textarea', control: 'textarea' },
+				{ type: 'summary', control: 'textarea' },
+			],
+		};
+
+		expect(getPrioritizedInserterBlocks()).toEqual([
+			'osf/field-input/text',
+			'osf/field-textarea',
+		]);
+	});
+
+	it('treats a type with no control as input-controlled', () => {
+		global.osfSettings = {
+			fieldBlockNames: ['osf/field-input'],
+			fieldTypes: [{ type: 'text' }],
+		};
+
+		expect(getPrioritizedInserterBlocks()).toEqual(['osf/field-input/text']);
+	});
+
+	it('skips a type whose derived block is not a field block', () => {
+		global.osfSettings = {
+			fieldBlockNames: ['osf/field-input'],
+			fieldTypes: [{ type: 'signature', control: 'signature-pad' }],
+		};
+
+		expect(getPrioritizedInserterBlocks()).toEqual([]);
+	});
+
+	it('skips every type when no field blocks were localized', () => {
+		global.osfSettings = {
+			fieldTypes: [{ type: 'text', control: 'input' }],
+		};
+
+		expect(getPrioritizedInserterBlocks()).toEqual([]);
 	});
 });
 

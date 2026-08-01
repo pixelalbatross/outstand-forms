@@ -172,13 +172,30 @@ $field   = $factory->create( 'email', $attributes );
 `outstand_forms_field_factory` filter, so block rendering, `FormBlockParser` and
 REST sanitization all read the same registry (including third-party types).
 
-A definition supports three optional keys:
+A definition supports five optional keys:
 
 | Key | Shape | Default |
 |-----|-------|---------|
 | `component` | `callable( FieldInterface $field ): ComponentInterface` | `<input type="{type}">` |
 | `rules` | array merged into the base rules, or `callable( array $rules, array $attributes ): array` | `[]` |
 | `sanitize` | `callable( mixed $value ): mixed` | `sanitize_text_field` |
+| `control` | string naming the editor control that renders the type | `input` |
+| `label` | string shown for the type in the editor | `ucfirst( $type )` |
+
+`control` and `label` are read only by the editor, via `get_registered_types()`
+→ `osfSettings.fieldTypes`. `control` is what collapses the type list: six types
+render through one `<Input>`, so `src/fields/index.js` switches on the control
+rather than enumerating types.
+
+The editor's two block lists are derived rather than written down.
+`getFieldBlockNames()` (from `FIELD_BLOCK_NAMES`) supplies the fields wrapper's
+`allowedBlocks`, and `getPrioritizedInserterBlocks()` builds the inserter
+priority from the type registry, naming each type's block by the
+`osf/field-{control}` convention and checking that guess against
+`getFieldBlockNames()`. A type whose block breaks the convention drops out of the
+priority list but stays insertable. Should that case become real, add an explicit
+`block` key to the definition and read it in `getPrioritizedInserterBlocks()` —
+that function is the only consumer.
 
 Built-in types:
 

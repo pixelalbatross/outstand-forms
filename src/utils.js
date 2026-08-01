@@ -16,25 +16,64 @@ export function getBlockId(length = 9) {
 }
 
 /**
- * Checks whether a block represents a form field.
+ * Get the blocks the server treats as form fields.
  *
  * `FormBlockParser::FIELD_BLOCK_NAMES` is the only definition of this list;
  * it reaches the editor as `osfSettings.fieldBlockNames`. There is
  * deliberately no JS fallback list — a stale mirror would silently disagree
  * with the server about what gets validated and submitted.
  *
+ * @return {Array<string>} Field block names, or an empty array if none were localized.
+ */
+export function getFieldBlockNames() {
+	const fieldBlockNames =
+		typeof osfSettings !== 'undefined' ? osfSettings?.fieldBlockNames : undefined;
+
+	return Array.isArray(fieldBlockNames) ? fieldBlockNames : [];
+}
+
+/**
+ * Checks whether a block represents a form field.
+ *
  * @param {Object} block The block to check.
  * @return {boolean} True if the block is a form field block.
  */
 export function isFieldBlock(block) {
-	const fieldBlockNames =
-		typeof osfSettings !== 'undefined' ? osfSettings?.fieldBlockNames : undefined;
+	return getFieldBlockNames().includes(block?.name);
+}
 
-	if (!Array.isArray(fieldBlockNames)) {
-		return false;
-	}
+/**
+ * Build the inserter priority list for the fields wrapper.
+ *
+ * Derived from the field type registry so a type registered through
+ * `outstand_forms_field_factory` reaches the inserter without a second list
+ * being edited. A type rendered by the `input` control is offered as the
+ * `osf/field-input` variation that `buildFieldInputVariations()` generates
+ * for it; anything else is offered as its own block.
+ *
+ * The block that inserts a type is `osf/field-{control}` by convention. That
+ * guess is checked against `getFieldBlockNames()`, so a type whose block does
+ * not follow it is left out of the priority list rather than named wrongly —
+ * it stays insertable through the regular inserter. If a block ever breaks the
+ * convention, give the registry an explicit block name and read it here.
+ *
+ * @return {Array<string>} Block and variation names, in registration order.
+ */
+export function getPrioritizedInserterBlocks() {
+	const fieldBlockNames = getFieldBlockNames();
 
-	return fieldBlockNames.includes(block?.name);
+	const names = getFieldTypes().map((fieldType) => {
+		const control = fieldType?.control ?? 'input';
+		const block = `osf/field-${control}`;
+
+		if (!fieldBlockNames.includes(block)) {
+			return undefined;
+		}
+
+		return control === 'input' ? `${block}/${fieldType.type}` : block;
+	});
+
+	return [...new Set(names.filter(Boolean))];
 }
 
 /**

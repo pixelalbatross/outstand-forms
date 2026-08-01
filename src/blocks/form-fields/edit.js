@@ -7,38 +7,22 @@ import { applyFilters } from '@wordpress/hooks';
 /**
  * Internal dependencies
  */
-import { DEFAULT_BLOCK, PRIORITIZED_INSERTER_BLOCKS } from './constants';
+import { CORE_ALLOWED_BLOCKS, DEFAULT_BLOCK } from './constants';
+import { getFieldBlockNames, getPrioritizedInserterBlocks } from '../../utils';
 
 export default function FormFieldsEdit() {
 	const blockProps = useBlockProps();
 
 	const allowedBlocks = applyFilters('outstandForms.form.allowedBlocks', [
-		'core/button',
-		'core/buttons',
-		'core/column',
-		'core/columns',
-		'core/cover',
-		'core/embed',
-		'core/gallery',
-		'core/group',
-		'core/heading',
-		'core/image',
-		'core/list-item',
-		'core/list',
-		'core/media-text',
-		'core/paragraph',
-		'core/separator',
-		'core/spacer',
-		'core/table',
-		'osf/field-input',
-		'osf/field-textarea',
+		...CORE_ALLOWED_BLOCKS,
+		...getFieldBlockNames(),
 	]);
 
 	const innerBlocksProps = useInnerBlocksProps(blockProps, {
 		__experimentalCaptureToolbars: true,
 		templateLock: false,
 		allowedBlocks,
-		prioritizedInserterBlocks: PRIORITIZED_INSERTER_BLOCKS,
+		prioritizedInserterBlocks: getPrioritizedInserterBlocks(),
 		defaultBlock: DEFAULT_BLOCK,
 	});
 
