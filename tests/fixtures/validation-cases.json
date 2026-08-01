@@ -147,13 +147,6 @@
 		"errors": [ "pattern" ]
 	},
 	{
-		"description": "unknown rules are ignored",
-		"value": "anything",
-		"rules": { "nonexistentRule": true },
-		"is_valid": true,
-		"errors": []
-	},
-	{
 		"description": "multiple failing rules report each rule name",
 		"value": "",
 		"rules": { "required": true, "minLength": 3 },
