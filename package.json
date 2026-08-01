@@ -22,6 +22,9 @@
     "test:js": "wp-scripts test-unit-js",
     "test:setup": "npm run wp-env start",
     "test:unit": "wp-env run tests-cli --env-cwd='wp-content/plugins/outstand-forms' vendor/bin/phpunit --testsuite=default",
+    "translate:compile": "wp-env run cli --env-cwd='wp-content/plugins/outstand-forms' -- wp i18n make-mo languages languages && wp-env run cli --env-cwd='wp-content/plugins/outstand-forms' -- wp i18n make-json languages --no-purge",
+    "translate:pot": "wp-env run cli --env-cwd='wp-content/plugins/outstand-forms' -- wp i18n make-pot . languages/outstand-forms.pot --domain=outstand-forms --exclude=vendor,node_modules,build,tests",
+    "translate:update": "wp-env run cli --env-cwd='wp-content/plugins/outstand-forms' -- wp i18n update-po languages/outstand-forms.pot languages/*.po",
     "wp-env": "wp-env",
     "wp-env:clean": "wp-env clean all"
   },

@@ -13,10 +13,12 @@ outstand-forms/
 ├── plugin.php                          # Bootstrap: constants, autoloader, Plugin::enable()
 ├── composer.json                       # PHP dependencies (PSR-4 autoload)
 ├── package.json                        # JS dependencies (@wordpress/scripts, Inputmask)
-├── includes/classes/
+├── includes/
 │   ├── Plugin.php                      # Singleton, module loader, block registration
-│   ├── AbstractModule.php              # Base class for feature modules
+│   ├── BaseModule.php                  # Base class for feature modules
 │   ├── FieldFactory.php                # Type registry: definitions, create(), sanitize()
+│   ├── FormBlockParser.php             # Extracts field configs from block content
+│   ├── FormSubmission.php              # No-JS fallback: handles plain page POSTs on 'template_redirect'
 │   ├── Fields/
 │   │   ├── FieldInterface.php          # Field contract
 │   │   └── Field.php                   # The field: attributes, components, render, validation, sanitize
@@ -30,8 +32,9 @@ outstand-forms/
 │   │   └── HelpText.php               # Help text container
 │   ├── REST/V1/
 │   │   ├── AbstractRoute.php           # REST endpoint base (namespace outstand-forms/v1)
-│   │   └── Forms.php                   # Forms submission endpoint
+│   │   └── Forms.php                   # Forms submission endpoint; process_submission() is shared with FormSubmission
 │   ├── Blocks/
+│   │   ├── AbstractBlock.php           # Base class for block-registration modules
 │   │   └── FieldTurnstile.php          # Turnstile script registration + submission verification
 │   ├── EmailNotification.php           # Sends email notifications on form submission
 │   ├── Settings.php                    # Plugin settings page (outstand_forms_settings option)
@@ -94,12 +97,13 @@ outstand-forms/
 plugin.php
 ├── Define OUTSTAND_FORMS_VERSION, OUTSTAND_FORMS_BASENAME, OUTSTAND_FORMS_URL, OUTSTAND_FORMS_PATH,
 │   OUTSTAND_FORMS_DIST_URL, OUTSTAND_FORMS_DIST_PATH constants
-├── Require Composer autoloader (PSR-4: Outstand\WP\Forms → includes/classes)
+├── Require Composer autoloader (PSR-4: Outstand\WP\Forms → includes/)
 ├── Initialize plugin update checker (GitHub-based)
 └── Hook on 'plugins_loaded' → Plugin::get_instance()->enable()
-    ├── Iterate modules array (FieldTurnstile, REST\V1\Forms, EmailNotification, Settings)
+    ├── Iterate modules array (FieldTurnstile, REST\V1\Forms, FormSubmission, EmailNotification, Settings)
     │   ├── FieldTurnstile → registers Turnstile script + submission filters
     │   ├── Forms → registers REST routes on 'rest_api_init'
+    │   ├── FormSubmission → handles no-JS page POSTs on 'template_redirect'
     │   ├── EmailNotification → listens on 'outstand_forms_form_submitted'
     │   └── Settings → registers the settings page
     ├── Hook register_blocks() on 'init'
@@ -249,6 +253,7 @@ Key data boundaries:
 
 - `wp_interactivity_data_wp_context()` — per-instance state; this is where submission and validation state live, not `wp_interactivity_config()`. The form context owns all mutable field state in its `formFields` registry; field-local context carries identity only (plus `initialRecord`, a one-way seed consumed by `callbacks.registerField`)
 - `data-wp-*` directives on HTML elements — bind reactive state to DOM
+- `FormSubmission::register_field_state()` registers server-side counterparts of the field getters (`fieldValue`, `isFieldValid`, `isFieldFocused`, `fieldErrorMessage`, `fieldAriaDescribedByAttribute`) via `wp_interactivity_state( 'osf/form', ... )`, so `data-wp-bind-*`/`data-wp-text` attributes resolve correctly on a plain server render even before `view.js` runs
 
 ## Frontend Interactivity Store
 
@@ -273,7 +278,7 @@ Every field-scoped getter reads `fieldName` from field-local context, then resol
 |--------|---------|--------|
 | `handleFieldFocus` | `focus` event | Sets `isFocused = true` on the field's registry record |
 | `handleFieldBlur` | `blur` event | Sets `isFocused = false` on the field's registry record |
-| `handleFieldChange` | `change` event | Updates `value` on the field's registry record from the element |
+| `handleFieldChange` | `input` event | Updates `value` on the field's registry record from the element as the user types |
 | `handleFormSubmit` | form `submit` event | Prevents default, guards against double-submit, runs `validateForm()`, then `submitForm()` if valid |
 | `validateForm` | Called by `handleFormSubmit` | Synchronous loop over `formFields`: runs `validate()` per record and writes `isValid`/`errors` back |
 | `submitForm` | Called by `handleFormSubmit` when the form is valid | POSTs `FormData` to the form's `action` URL, updates submission state, writes 400-response errors straight into the matching registry records |
@@ -282,8 +287,8 @@ Every field-scoped getter reads `fieldName` from field-local context, then resol
 
 | Callback | Directive | Purpose |
 |----------|-----------|---------|
-| `registerField` | `data-wp-init--register` | Seeds the field's record in the form's `formFields` registry on mount |
-| `initMask` | `data-wp-init--mask` | Lazy-loads Inputmask library, applies mask |
+| `registerField` | `data-wp-init---register` | Seeds the field's record in the form's `formFields` registry on mount |
+| `initMask` | `data-wp-init---mask` | Lazy-loads Inputmask library, applies mask |
 
 ### Parent-Owned Field State
 
@@ -293,8 +298,8 @@ The form owns all mutable field state. `formFields` is a registry keyed by field
 formFields: { [fieldName]: { value, isValid, isFocused, errors, validationRules } }
 ```
 
-1. Each field self-registers on init (`data-wp-init--register`), seeding its record from `initialRecord`
-2. Field-bound actions (`focus`/`blur`/`change`) write into their own record
+1. Each field self-registers on init (`data-wp-init---register`), seeding its record from `initialRecord`
+2. Field-bound actions (`focus`/`blur`/`input`) write into their own record
 3. `handleFormSubmit` calls `validateForm()`, a synchronous loop over the registry, then reads `isFormValid` and submits
 4. A 400 response writes failed rule names into the matching records; the next `validateForm()` pass clears them
 
@@ -325,9 +330,11 @@ Frontend receives context        ──→         ↓
                                          Reactive state updates DOM (error messages, ARIA)
 ```
 
-The `validate()` function exported from `src/validation.js` iterates over rules, looks up each validator by name from an internal map, and returns `{ isValid, errors }`.
+The `validate()` function exported from `src/validation.js` iterates over rules, resolves each validator by name, and returns `{ isValid, errors }`. Resolution checks the `validators` map on the `osf/form` store first, then the built-in map; a rule that resolves to neither is pushed onto `errors` and reported once with `console.warn()`.
 
 Built-in validators: `required`, `email`, `url`, `pattern`, `minLength`, `maxLength`, `min`, `max`.
+
+Unknown rules fail closed on the client and are skipped on the server. The asymmetry is deliberate: PHP is authoritative, so a rule it cannot resolve is a no-op, while the client reporting a value as valid that the server would reject is the one outcome that is always wrong. A client validator can therefore only ever be stricter than the server, never laxer.
 
 ## Server-Side Validation
 
@@ -365,28 +372,42 @@ $validator->register( 'phone', function ( $value, $params, $config ) {
 
 ### Submission Flow
 
+There are two entry points, both of which delegate to the same shared core, `REST\V1\Forms::process_submission()`, so the rate limit, the `outstand_forms_form_pre_submission_check` filter and the `outstand_forms_form_submitted` action apply identically to either path:
+
 ```
-Client POST /outstand-forms/v1/forms/submit
-    ↓
-Rate limit check (per-IP transient, 5 attempts/minute by default)
-    ↓
-FormBlockParser extracts field configs from block content using post_id
-    ↓
-outstand_forms_form_pre_submission_check filter (Turnstile verification runs here)
-    ↓
-Sanitize values (type-aware, scoped to known fields only)
-    ↓
-For each field config:
-    Validator->validate( submitted_value, validation_rules )
-    ↓
-If errors → WP_Error (400) with per-field error rule names
-    ↓
-do_action( 'outstand_forms_form_submitted', $form_id, $post_id, $sanitized_data, $form_data )
-    ↓
-WP_REST_Response (200)
+Client POST /outstand-forms/v1/forms/submit          Plain <form> POST back to the page
+(JS: Interactivity submit handler)                    (no JS: 'template_redirect')
+    ↓                                                      ↓
+REST\V1\Forms::submit_form()                          FormSubmission::handle_submission()
+    │                                                      │ verifies the osf_nonce nonce
+    └──────────────────┬───────────────────────────────────┘
+                        ↓
+            REST\V1\Forms::process_submission()
+                        ↓
+        Rate limit check (per-IP transient, 5 attempts/minute by default)
+                        ↓
+        FormBlockParser extracts field configs from block content using post_id
+                        ↓
+        outstand_forms_form_pre_submission_check filter (Turnstile verification runs here)
+                        ↓
+        Sanitize values (type-aware, scoped to known fields only)
+                        ↓
+        For each field config:
+            Validator->validate( submitted_value, validation_rules )
+                        ↓
+        If errors → WP_Error (400) with per-field error rule names
+                        ↓
+        do_action( 'outstand_forms_form_submitted', $form_id, $post_id, $sanitized_data, $form_data )
+                        ↓
+        ┌───────────────────────────────┴───────────────────────────────┐
+        ↓                                                                ↓
+WP_REST_Response (200)                                  FormSubmission redirects (Post/Redirect/Get):
+(JS reads success/errors from the response body)        success → ?osf-success=$form_id
+                                                          error   → transient-backed ?osf-state=$token,
+                                                                    read back by FormSubmission::get_render_state()
 ```
 
-**Security Note:** The submission endpoint is intentionally public and unauthenticated (`permission_callback` returns `true`). The `_wpnonce` field emitted by the form is not verified server-side. Abuse protection relies on the per-IP rate limit (configurable via `outstand_forms_rate_limit` filter) and optional Cloudflare Turnstile verification (enabled via the `osf/field-turnstile` block within the form).
+**Security Note:** The submission endpoint is intentionally public and unauthenticated (`permission_callback` returns `true`). The `_wpnonce` field emitted by the form is not verified server-side by the REST route; the no-JS `FormSubmission` path verifies its own `osf_nonce` field before calling into `process_submission()`. Abuse protection relies on the per-IP rate limit (configurable via `outstand_forms_rate_limit` filter) and optional Cloudflare Turnstile verification (enabled via the `osf/field-turnstile` block within the form).
 
 ## Design Patterns
 
@@ -398,7 +419,7 @@ WP_REST_Response (200)
 | **Strategy** | Field type definitions | Per-type component, rules and sanitizer callables |
 | **Composition** | Fields → Components | Fields composed of Label, Input/Textarea, Error, HelpText |
 | **Registry** | `Validator` | Central store for validator functions (PHP) |
-| **Observer** | Custom events, WP hooks | Decoupled communication between form and fields |
+| **Observer** | WP hooks (`outstand_forms_form_submitted`, etc.) | Decoupled communication between PHP modules |
 | **Context/DI** | Block context system | Form-wide settings cascade to child blocks |
 
 ## Extensibility Points
@@ -450,4 +471,20 @@ addFilter('outstandForms.form.allowedBlocks', 'my-plugin/allowed-blocks', (block
 ]);
 ```
 
-JS validators are internal to `src/validation.js` and not exposed as a public API. To add custom validation rules, use the PHP `Validator::register()` method on the server side.
+**Client-side validators** — Registered by merging a `validators` map into the plugin's own store namespace:
+
+```js
+import { store } from '@wordpress/interactivity';
+
+store('osf/form', {
+	validators: {
+		phone: (value, params, config) => value === '' || /^\+?[\d\s\-()]+$/.test(value),
+	},
+});
+```
+
+The callback signature matches `Validator::register()` — `(value, params, config)`, where `params` is `{}` for a rule config of `true` and the raw config otherwise. Rule names, the empty-value convention (only `required` rejects empty), and last-write-wins override semantics are the same as PHP. A registered name shadows the built-in of the same name.
+
+Ordering is not a concern. `store()` deep-merges into a namespace-keyed registry and mutates in place, so a third-party module may run before or after `src/validation.js`; the empty seed it merges never clobbers an earlier registration, and `validate()` resolves validators at call time. The earliest possible call is a user interaction, which is strictly after every script module has evaluated.
+
+Registering client-side is optional and never authoritative — `Validator::register()` on the server is what actually enforces a rule. Registering only in PHP leaves the client failing that rule closed; registering only in JS leaves the server accepting the value.

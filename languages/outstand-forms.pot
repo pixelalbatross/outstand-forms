@@ -1,0 +1,813 @@
+# Copyright (C) 2026 Outstand
+# This file is distributed under the GPL-3.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Outstand Forms 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/outstand-forms\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-08-01T14:51:13+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: outstand-forms\n"
+
+#. Plugin Name of the plugin
+#: plugin.php
+#: includes/Plugin.php:117
+#: includes/Settings.php:39
+#: includes/Settings.php:40
+msgid "Outstand Forms"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: plugin.php
+msgid "https://outstand.site/?utm_source=wp-plugins&utm_medium=outstand-forms&utm_campaign=plugin-uri"
+msgstr ""
+
+#. Description of the plugin
+#: plugin.php
+msgid "Build flexible, modern forms using the WordPress block editor."
+msgstr ""
+
+#. Author of the plugin
+#: plugin.php
+msgid "Outstand"
+msgstr ""
+
+#. Author URI of the plugin
+#: plugin.php
+msgid "https://outstand.site/?utm_source=wp-plugins&utm_medium=outstand-forms&utm_campaign=author-uri"
+msgstr ""
+
+#: includes/Blocks/FieldTurnstile.php:56
+msgid "Turnstile verification token."
+msgstr ""
+
+#: includes/Blocks/FieldTurnstile.php:128
+#: includes/Blocks/FieldTurnstile.php:138
+msgid "Security verification failed."
+msgstr ""
+
+#: includes/EmailNotification.php:100
+msgid "New form submission"
+msgstr ""
+
+#: includes/FormSubmission.php:93
+msgid "Your session has expired. Please go back, reload the page and submit the form again."
+msgstr ""
+
+#: includes/FormSubmission.php:94
+msgid "Form submission failed"
+msgstr ""
+
+#: includes/REST/V1/Forms.php:47
+msgid "The form ID."
+msgstr ""
+
+#: includes/REST/V1/Forms.php:53
+msgid "The post ID containing the form."
+msgstr ""
+
+#: includes/REST/V1/Forms.php:87
+msgid "Form submitted successfully."
+msgstr ""
+
+#: includes/REST/V1/Forms.php:127
+msgid "Form not found."
+msgstr ""
+
+#: includes/REST/V1/Forms.php:168
+msgid "Form validation failed."
+msgstr ""
+
+#: includes/REST/V1/Forms.php:263
+msgid "Too many submissions. Please try again in a minute."
+msgstr ""
+
+#: includes/Settings.php:69
+msgid "Cloudflare Turnstile"
+msgstr ""
+
+#: includes/Settings.php:76
+msgid "Site Key"
+msgstr ""
+
+#: includes/Settings.php:84
+msgid "Secret Key"
+msgstr ""
+
+#: includes/Settings.php:137
+msgid "Configure Cloudflare Turnstile to protect your forms from spam and abuse."
+msgstr ""
+
+#: includes/Settings.php:139
+msgid "Get your API keys"
+msgstr ""
+
+#: includes/Settings.php:160
+msgid "Enter your Cloudflare Turnstile site key."
+msgstr ""
+
+#: includes/Settings.php:182
+msgid "Enter your Cloudflare Turnstile secret key."
+msgstr ""
+
+#: includes/templates/email-notification.php:13
+msgid "New Form Submission"
+msgstr ""
+
+#: src/blocks/form/render.php:68
+msgid "There was a problem submitting the form. Please try again."
+msgstr ""
+
+#: src/blocks/form/render.php:88
+msgid "This field is required."
+msgstr ""
+
+#: src/blocks/form/render.php:89
+msgid "The value does not match the expected format."
+msgstr ""
+
+#: src/blocks/form/render.php:90
+msgid "Please enter a valid email address."
+msgstr ""
+
+#: src/blocks/form/render.php:91
+msgid "Please enter a valid URL."
+msgstr ""
+
+#: src/blocks/form/render.php:92
+msgid "Please enter at least {{min}} characters."
+msgstr ""
+
+#: src/blocks/form/render.php:93
+msgid "Please enter no more than {{max}} characters."
+msgstr ""
+
+#: src/blocks/form/render.php:94
+msgid "Please enter a value greater than or equal to {{min}}."
+msgstr ""
+
+#: src/blocks/form/render.php:95
+msgid "Please enter a value less than or equal to {{max}}."
+msgstr ""
+
+#: src/blocks/field-input/edit.js:162
+#: src/blocks/field-textarea/edit.js:146
+#: src/blocks/field-turnstile/edit.js:25
+#: src/blocks/form/edit.js:119
+msgid "Settings"
+msgstr ""
+
+#: src/blocks/field-input/edit.js:164
+#: src/blocks/field-textarea/edit.js:148
+msgid "Required"
+msgstr ""
+
+#: src/blocks/field-input/edit.js:171
+#: src/blocks/field-textarea/edit.js:155
+msgid "Default Value"
+msgstr ""
+
+#: src/blocks/field-input/edit.js:175
+#: src/blocks/field-textarea/edit.js:159
+msgid "The value that will be displayed by default."
+msgstr ""
+
+#: src/blocks/field-input/edit.js:180
+#: src/blocks/field-textarea/edit.js:164
+msgid "Placeholder"
+msgstr ""
+
+#: src/blocks/field-input/edit.js:184
+#: src/blocks/field-textarea/edit.js:168
+msgid "The text that will be displayed as a placeholder."
+msgstr ""
+
+#: src/blocks/field-input/edit.js:193
+msgid "Step"
+msgstr ""
+
+#: src/blocks/field-input/edit.js:197
+msgid "The step value."
+msgstr ""
+
+#: src/blocks/field-input/edit.js:204
+msgid "Min Value"
+msgstr ""
+
+#: src/blocks/field-input/edit.js:207
+msgid "Minimum value."
+msgstr ""
+
+#: src/blocks/field-input/edit.js:214
+msgid "Max Value"
+msgstr ""
+
+#: src/blocks/field-input/edit.js:217
+msgid "Maximum value."
+msgstr ""
+
+#: src/blocks/field-input/edit.js:224
+#: src/blocks/field-textarea/edit.js:176
+msgid "Min Characters"
+msgstr ""
+
+#: src/blocks/field-input/edit.js:228
+#: src/blocks/field-textarea/edit.js:180
+msgid "Minimum number of characters required."
+msgstr ""
+
+#: src/blocks/field-input/edit.js:235
+#: src/blocks/field-textarea/edit.js:185
+msgid "Max Characters"
+msgstr ""
+
+#: src/blocks/field-input/edit.js:239
+#: src/blocks/field-textarea/edit.js:189
+msgid "Maximum number of characters allowed."
+msgstr ""
+
+#: src/blocks/field-input/edit.js:245
+#: src/blocks/field-textarea/edit.js:194
+msgid "Appearance"
+msgstr ""
+
+#: src/blocks/field-input/edit.js:247
+#: src/blocks/field-textarea/edit.js:196
+#: src/blocks/form/edit.js:154
+msgid "Label Position"
+msgstr ""
+
+#: src/blocks/field-input/edit.js:251
+#: src/blocks/field-textarea/edit.js:200
+#: src/blocks/form/edit.js:158
+msgid "Select the position of the label."
+msgstr ""
+
+#: src/blocks/field-input/edit.js:263
+#: src/blocks/field-textarea/edit.js:212
+#: src/blocks/form/edit.js:168
+msgid "Help Text Position"
+msgstr ""
+
+#: src/blocks/field-input/edit.js:267
+#: src/blocks/field-textarea/edit.js:216
+#: src/blocks/form/edit.js:172
+msgid "Select the position of the help text."
+msgstr ""
+
+#: src/blocks/field-input/edit.js:282
+#: src/blocks/field-textarea/edit.js:249
+#: src/blocks/form/variations.js:39
+msgid "Name"
+msgstr ""
+
+#: src/blocks/field-input/edit.js:291
+#: src/blocks/field-textarea/edit.js:258
+msgid "Another field in this form uses the same name. Only one value will be submitted."
+msgstr ""
+
+#: src/blocks/field-input/edit.js:298
+#: src/blocks/field-textarea/edit.js:265
+msgid "Autocomplete"
+msgstr ""
+
+#: src/blocks/field-input/edit.js:302
+#: src/blocks/field-textarea/edit.js:269
+msgid "Define how browsers autofill this field."
+msgstr ""
+
+#: src/blocks/field-input/edit.js:307
+#: src/blocks/field-textarea/edit.js:274
+msgid "ARIA Label"
+msgstr ""
+
+#: src/blocks/field-input/edit.js:310
+#: src/blocks/field-textarea/edit.js:277
+msgid "The ARIA label for accessibility."
+msgstr ""
+
+#: src/blocks/field-input/edit.js:317
+msgid "Pattern"
+msgstr ""
+
+#: src/blocks/field-input/edit.js:321
+msgid "Regular expression pattern for input validation."
+msgstr ""
+
+#: src/blocks/field-input/edit.js:331
+#: src/blocks/field-textarea/edit.js:283
+msgid "Mask"
+msgstr ""
+
+#: src/blocks/field-input/edit.js:335
+#: src/blocks/field-textarea/edit.js:287
+msgid "The mask that will be applied to the field."
+msgstr ""
+
+#: src/blocks/field-input/variations.js:27
+msgid "Text"
+msgstr ""
+
+#: src/blocks/field-input/variations.js:31
+#: src/blocks/field-input/variations.js:40
+#: src/blocks/field-input/variations.js:50
+#: src/blocks/field-input/variations.js:59
+#: src/blocks/field-input/variations.js:69
+#: src/blocks/field-input/variations.js:80
+msgid "field"
+msgstr ""
+
+#: src/blocks/field-input/variations.js:32
+#: src/blocks/field-input/variations.js:41
+#: src/blocks/field-input/variations.js:51
+#: src/blocks/field-input/variations.js:60
+#: src/blocks/field-input/variations.js:70
+#: src/blocks/field-input/variations.js:81
+msgid "input"
+msgstr ""
+
+#: src/blocks/field-input/variations.js:33
+msgid "text"
+msgstr ""
+
+#: src/blocks/field-input/variations.js:37
+#: src/blocks/form/variations.js:51
+msgid "Email"
+msgstr ""
+
+#: src/blocks/field-input/variations.js:42
+msgid "email"
+msgstr ""
+
+#: src/blocks/field-input/variations.js:47
+msgid "Number"
+msgstr ""
+
+#: src/blocks/field-input/variations.js:52
+msgid "number"
+msgstr ""
+
+#: src/blocks/field-input/variations.js:56
+msgid "Password"
+msgstr ""
+
+#: src/blocks/field-input/variations.js:61
+msgid "password"
+msgstr ""
+
+#: src/blocks/field-input/variations.js:66
+msgid "Phone"
+msgstr ""
+
+#: src/blocks/field-input/variations.js:71
+msgid "telephone"
+msgstr ""
+
+#: src/blocks/field-input/variations.js:72
+msgid "tel"
+msgstr ""
+
+#: src/blocks/field-input/variations.js:77
+msgid "URL"
+msgstr ""
+
+#: src/blocks/field-input/variations.js:82
+msgid "url"
+msgstr ""
+
+#: src/blocks/field-input/variations.js:83
+msgid "link"
+msgstr ""
+
+#: src/blocks/field-textarea/edit.js:228
+msgid "Rows"
+msgstr ""
+
+#: src/blocks/field-textarea/edit.js:232
+msgid "Number of rows."
+msgstr ""
+
+#: src/blocks/field-textarea/edit.js:237
+msgid "Columns"
+msgstr ""
+
+#: src/blocks/field-textarea/edit.js:241
+msgid "Number of columns."
+msgstr ""
+
+#: src/blocks/field-turnstile/edit.js:33
+msgid "Turnstile is not configured. <link>Create a widget</link> in your Cloudflare dashboard and add the Site Key and Secret Key in Settings → Outstand Forms."
+msgstr ""
+
+#: src/blocks/field-turnstile/edit.js:46
+msgid "Theme"
+msgstr ""
+
+#: src/blocks/field-turnstile/edit.js:49
+msgid "Auto"
+msgstr ""
+
+#: src/blocks/field-turnstile/edit.js:50
+msgid "Light"
+msgstr ""
+
+#: src/blocks/field-turnstile/edit.js:51
+msgid "Dark"
+msgstr ""
+
+#: src/blocks/field-turnstile/edit.js:58
+msgid "Size"
+msgstr ""
+
+#: src/blocks/field-turnstile/edit.js:61
+msgid "Normal"
+msgstr ""
+
+#: src/blocks/field-turnstile/edit.js:62
+msgid "Compact"
+msgstr ""
+
+#: src/blocks/field-turnstile/preview.js:46
+msgid "Success!"
+msgstr ""
+
+#: src/blocks/form-errors/edit.js:22
+msgid "Error messages will be displayed here."
+msgstr ""
+
+#: src/blocks/form-message/edit.js:11
+msgid "Your form has been submitted successfully."
+msgstr ""
+
+#: src/blocks/form-submit/constants.js:19
+msgid "Submit"
+msgstr ""
+
+#: src/blocks/form/edit.js:121
+msgid "Title"
+msgstr ""
+
+#: src/blocks/form/edit.js:130
+msgid "Action"
+msgstr ""
+
+#: src/blocks/form/edit.js:134
+msgid "The URL where the form will be submitted. Leave blank to handle the submission automatically."
+msgstr ""
+
+#: src/blocks/form/edit.js:143
+msgid "Actions"
+msgstr ""
+
+#: src/blocks/form/edit.js:182
+msgid "Required Indicator"
+msgstr ""
+
+#: src/blocks/form/edit.js:186
+msgid "The character or string used to indicate that a field is required. Leave blank to disable."
+msgstr ""
+
+#: src/blocks/form/edit.js:224
+msgid "Choose a form template or start from scratch to create your own."
+msgstr ""
+
+#: src/blocks/form/variations.js:15
+msgid "Blank"
+msgstr ""
+
+#: src/blocks/form/variations.js:23
+msgid "Contact Us"
+msgstr ""
+
+#: src/blocks/form/variations.js:41
+msgid "Please enter your full name."
+msgstr ""
+
+#: src/blocks/form/variations.js:53
+msgid "Please enter your email address."
+msgstr ""
+
+#: src/blocks/form/variations.js:62
+#: src/components/FormActionModal/ActionMessageField.js:22
+msgid "Message"
+msgstr ""
+
+#: src/blocks/form/variations.js:64
+msgid "Please enter your message."
+msgstr ""
+
+#: src/components/FormActionModal/EmailActionFields.js:27
+#: src/components/FormActionModal/EmailActionFields.js:40
+msgid "To Email"
+msgstr ""
+
+#: src/components/FormActionModal/EmailActionFields.js:31
+msgid "Select the email field that contains the recipient address."
+msgstr ""
+
+#: src/components/FormActionModal/EmailActionFields.js:43
+msgid "e.g. {admin_email}"
+msgstr ""
+
+#: src/components/FormActionModal/EmailActionFields.js:49
+msgid "From Name"
+msgstr ""
+
+#: src/components/FormActionModal/EmailActionFields.js:61
+msgid "From Email"
+msgstr ""
+
+#: src/components/FormActionModal/EmailActionFields.js:73
+msgid "Reply-To"
+msgstr ""
+
+#: src/components/FormActionModal/EmailActionFields.js:80
+msgid "BCC"
+msgstr ""
+
+#: src/components/FormActionModal/EmailActionFields.js:83
+msgid "Comma-separated list of email addresses."
+msgstr ""
+
+#: src/components/FormActionModal/EmailActionFields.js:88
+msgid "Subject"
+msgstr ""
+
+#: src/components/FormActionModal/EmailActionFields.js:98
+msgid "Write your email message here…"
+msgstr ""
+
+#: src/components/FormActionModal/EmailActionFields.js:99
+msgid "Use {field_name} to insert field values. Use {all_fields} to insert all fields."
+msgstr ""
+
+#: src/components/FormActions/index.js:21
+msgid "Admin Email"
+msgstr ""
+
+#: src/components/FormActions/index.js:22
+msgid "User Email"
+msgstr ""
+
+#: src/components/FormActions/index.js:62
+msgid "Edit"
+msgstr ""
+
+#: src/components/HelpText/index.js:24
+msgid "Optional help text…"
+msgstr ""
+
+#: src/components/HelpText/index.js:25
+msgid "Add help text"
+msgstr ""
+
+#: src/components/Input/index.js:22
+#: src/components/Textarea/index.js:16
+msgid "Optional placeholder text"
+msgstr ""
+
+#: src/components/Input/index.js:23
+#: src/components/Textarea/index.js:17
+msgid "Optional placeholder…"
+msgstr ""
+
+#: src/components/Label/index.js:22
+msgid "Label"
+msgstr ""
+
+#: src/components/Label/index.js:22
+msgid "Empty label"
+msgstr ""
+
+#: src/components/Label/index.js:24
+msgid "Type a label"
+msgstr ""
+
+#. translators: %s is the field type
+#: src/fields/index.js:70
+#, js-format
+msgid "Unknown field type \"%s\". Is the plugin that registers it active?"
+msgstr ""
+
+#. translators: %s is the field ID
+#: src/fields/index.js:87
+#, js-format
+msgid "ID: %s"
+msgstr ""
+
+#: src/hooks/useEmailFieldOptions.js:17
+msgid "— Select field —"
+msgstr ""
+
+#: src/options.js:14
+#: src/options.js:38
+msgid "Top"
+msgstr ""
+
+#: src/options.js:18
+msgid "Left"
+msgstr ""
+
+#: src/options.js:22
+msgid "Right"
+msgstr ""
+
+#: src/options.js:34
+msgid "Bottom"
+msgstr ""
+
+#: src/options.js:55
+msgid "Disabled"
+msgstr ""
+
+#: src/options.js:59
+msgid "Enabled"
+msgstr ""
+
+#: src/options.js:63
+msgid "Full name"
+msgstr ""
+
+#: src/options.js:67
+msgid "Given name or first name"
+msgstr ""
+
+#: src/options.js:71
+msgid "Family name or last name"
+msgstr ""
+
+#: src/options.js:75
+msgid "Additional name or middle name"
+msgstr ""
+
+#: src/options.js:79
+msgid "Prefix or title"
+msgstr ""
+
+#: src/options.js:83
+msgid "Suffix"
+msgstr ""
+
+#: src/options.js:87
+msgid "E-mail address"
+msgstr ""
+
+#: src/options.js:91
+msgid "Nickname"
+msgstr ""
+
+#: src/options.js:95
+msgid "Username"
+msgstr ""
+
+#: src/options.js:99
+msgid "New password"
+msgstr ""
+
+#: src/options.js:103
+msgid "Current password"
+msgstr ""
+
+#: src/options.js:107
+msgid "Company name"
+msgstr ""
+
+#: src/options.js:111
+msgid "Street address"
+msgstr ""
+
+#: src/options.js:115
+msgid "Address line 1"
+msgstr ""
+
+#: src/options.js:119
+msgid "Address line 2"
+msgstr ""
+
+#: src/options.js:123
+msgid "Address line 3"
+msgstr ""
+
+#: src/options.js:127
+msgid "Country code"
+msgstr ""
+
+#: src/options.js:131
+msgid "Country name"
+msgstr ""
+
+#: src/options.js:135
+msgid "Postal code or zip code"
+msgstr ""
+
+#: src/options.js:139
+msgid "City"
+msgstr ""
+
+#: src/options.js:143
+msgid "State or province"
+msgstr ""
+
+#: src/options.js:147
+msgid "Phone number"
+msgstr ""
+
+#: src/options.js:151
+msgid "Birthdate"
+msgstr ""
+
+#: src/options.js:155
+msgid "Day component of birthday"
+msgstr ""
+
+#: src/options.js:159
+msgid "Month component of birthday"
+msgstr ""
+
+#: src/options.js:163
+msgid "Year component of birthday"
+msgstr ""
+
+#: src/options.js:167
+msgid "Website URL"
+msgstr ""
+
+#: src/blocks/field-input/block.json
+msgctxt "block title"
+msgid "Input"
+msgstr ""
+
+#: src/blocks/field-textarea/block.json
+msgctxt "block title"
+msgid "Textarea"
+msgstr ""
+
+#: src/blocks/field-textarea/block.json
+msgctxt "block keyword"
+msgid "field"
+msgstr ""
+
+#: src/blocks/field-textarea/block.json
+msgctxt "block keyword"
+msgid "textarea"
+msgstr ""
+
+#: src/blocks/field-turnstile/block.json
+msgctxt "block title"
+msgid "Turnstile"
+msgstr ""
+
+#: src/blocks/field-turnstile/block.json
+msgctxt "block description"
+msgid "Cloudflare Turnstile spam protection"
+msgstr ""
+
+#: src/blocks/form-errors/block.json
+msgctxt "block title"
+msgid "Form Errors"
+msgstr ""
+
+#: src/blocks/form-fields/block.json
+msgctxt "block title"
+msgid "Form Fields"
+msgstr ""
+
+#: src/blocks/form-message/block.json
+msgctxt "block title"
+msgid "Form Message"
+msgstr ""
+
+#: src/blocks/form-submit/block.json
+msgctxt "block title"
+msgid "Form Submit"
+msgstr ""
+
+#: src/blocks/form/block.json
+msgctxt "block title"
+msgid "Outstand Forms"
+msgstr ""
+
+#: src/blocks/form/block.json
+msgctxt "block keyword"
+msgid "outstand"
+msgstr ""
+
+#: src/blocks/form/block.json
+msgctxt "block keyword"
+msgid "form"
+msgstr ""
+
+#: src/blocks/form/block.json
+msgctxt "block keyword"
+msgid "feedback"
+msgstr ""
+
+#: src/blocks/form/block.json
+msgctxt "block keyword"
+msgid "contact"
+msgstr ""

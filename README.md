@@ -15,10 +15,11 @@ Outstand Forms is a WordPress plugin for building forms using the Block Editor. 
 - Field-level validation messages.
 - Input mask support via [Inputmask](https://robinherbots.github.io/Inputmask/).
 - Accessible markup with proper `aria` attributes.
+- Works without JavaScript, with a progressively enhanced submit flow when it's available.
 - Lightweight and extensible.
 
 > [!NOTE]
-> Form submission requires JavaScript. Forms are progressively rendered on the server, but the submit flow posts to the REST API via the Interactivity API — with JavaScript disabled the form cannot be submitted.
+> Forms work without JavaScript. By default a form posts back to the page it's rendered on; the submission is validated and processed through the same pipeline as the REST route, then redirected (Post/Redirect/Get) so a page refresh can't resubmit it. Validation errors and submitted values are replayed on the redirected page. When JavaScript is available, the Interactivity API takes over: it submits to the REST API instead, and disables the browser's native validation in favor of its own client-side checks.
 
 ## Installation
 
@@ -41,6 +42,11 @@ composer require outstand/forms
 
 2. Run `composer install` to install the plugin.
 3. Activate the plugin from your WordPress admin area or using WP-CLI.
+
+## Requirements
+
+- WordPress 6.7+
+- PHP 8.2+
 
 ## Quick Start
 
@@ -146,6 +152,33 @@ $validator->register( 'phone', function( $value, $params, $config ) {
 } );
 ```
 
+Register the matching client-side validator from a script module, so the rule is
+enforced while typing instead of only on submit:
+
+```js
+import { store } from '@wordpress/interactivity';
+
+store( 'osf/form', {
+	validators: {
+		phone: ( value, params, config ) => value === '' || /^\+?[\d\s\-()]+$/.test( value ),
+	},
+} );
+```
+
+The callback receives the same `( value, params, config )` arguments as the PHP
+one, and registering a built-in name overrides it. Registration order does not
+matter: the store merges the map whether your module runs before or after the
+plugin's.
+
+The server stays authoritative. A rule registered only in PHP is failed closed
+on the client — the field is marked invalid and a `console.warn()` names the
+missing validator — so a value can never look valid in the browser and be
+rejected by the server.
+
 ## Changelog
 
-A complete listing of all notable changes to this project are documented in [CHANGELOG.md](https://github.com/s3rgiosan/outstand-forms/blob/main/CHANGELOG.md).
+A complete listing of all notable changes to this project are documented in [CHANGELOG.md](https://github.com/pixelalbatross/outstand-forms/blob/main/CHANGELOG.md).
+
+## License
+
+[GPL-3.0-or-later](https://spdx.org/licenses/GPL-3.0-or-later.html)
