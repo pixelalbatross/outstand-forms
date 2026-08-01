@@ -33,4 +33,6 @@ Desktop.ini
 .wp-env.override.json
 .phpunit.result.cache
 artifacts/
+coverage/
+tests/coverage/
 .playwright-mcp/

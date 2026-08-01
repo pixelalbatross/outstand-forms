@@ -20,6 +20,7 @@
     "start": "wp-scripts start --experimental-modules",
     "test:e2e": "wp-scripts test-playwright",
     "test:js": "wp-scripts test-unit-js",
+    "test:js:coverage": "wp-scripts test-unit-js --coverage",
     "test:setup": "npm run wp-env start",
     "test:unit": "wp-env run tests-cli --env-cwd='wp-content/plugins/outstand-forms' vendor/bin/phpunit --testsuite=default",
     "translate:compile": "wp-env run cli --env-cwd='wp-content/plugins/outstand-forms' -- wp i18n make-mo languages languages && wp-env run cli --env-cwd='wp-content/plugins/outstand-forms' -- wp i18n make-json languages --no-purge",
@@ -30,8 +31,13 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",
+    "@testing-library/react": "^16.3.2",
+    "@wordpress/block-editor": "^16.1.0",
+    "@wordpress/components": "^38.0.0",
+    "@wordpress/data": "^10.52.0",
     "@wordpress/e2e-test-utils-playwright": "^1.50.0",
     "@wordpress/env": "^10.0.0",
+    "@wordpress/i18n": "^6.25.0",
     "@wordpress/scripts": "^30.12.0"
   },
   "dependencies": {
