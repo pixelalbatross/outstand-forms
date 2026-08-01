@@ -6,8 +6,13 @@ import {
 	getBlockId,
 	findBlocks,
 	getFieldTypes,
+	getFormActionIds,
+	getHelpTextPositions,
+	getLabelPositions,
+	isInlineLabelPosition,
 	resolveFieldControl,
 	resolveFieldName,
+	supportsMask,
 } from './utils';
 
 describe('getBlockId', () => {
@@ -113,6 +118,113 @@ describe('resolveFieldControl', () => {
 
 		expect(resolveFieldControl('text')).toBe('input');
 		expect(resolveFieldControl('textarea')).toBe('textarea');
+	});
+});
+
+describe('supportsMask', () => {
+	afterEach(() => {
+		delete global.osfSettings;
+	});
+
+	it('returns false when osfSettings is undefined', () => {
+		expect(supportsMask('text')).toBe(false);
+	});
+
+	it('returns false when unmaskableTypes is not an array', () => {
+		global.osfSettings = { unmaskableTypes: 'nope' };
+
+		expect(supportsMask('text')).toBe(false);
+	});
+
+	it('returns false for an unmaskable type declared by PHP', () => {
+		global.osfSettings = { unmaskableTypes: ['number', 'email', 'url'] };
+
+		expect(supportsMask('email')).toBe(false);
+	});
+
+	it('returns true for a type not in the unmaskable list', () => {
+		global.osfSettings = { unmaskableTypes: ['number', 'email', 'url'] };
+
+		expect(supportsMask('text')).toBe(true);
+	});
+});
+
+describe('getLabelPositions', () => {
+	afterEach(() => {
+		delete global.osfSettings;
+	});
+
+	it('returns an empty array when osfSettings is undefined', () => {
+		expect(getLabelPositions()).toEqual([]);
+	});
+
+	it('returns the localized label positions', () => {
+		global.osfSettings = { labelPositions: ['top', 'left', 'right'] };
+
+		expect(getLabelPositions()).toEqual(['top', 'left', 'right']);
+	});
+});
+
+describe('isInlineLabelPosition', () => {
+	afterEach(() => {
+		delete global.osfSettings;
+	});
+
+	it('returns false when osfSettings is undefined', () => {
+		expect(isInlineLabelPosition('left')).toBe(false);
+	});
+
+	it('returns true for a position declared inline by PHP', () => {
+		global.osfSettings = { inlineLabelPositions: ['left', 'right'] };
+
+		expect(isInlineLabelPosition('left')).toBe(true);
+		expect(isInlineLabelPosition('right')).toBe(true);
+	});
+
+	it('returns false for a position not declared inline by PHP', () => {
+		global.osfSettings = { inlineLabelPositions: ['left', 'right'] };
+
+		expect(isInlineLabelPosition('top')).toBe(false);
+	});
+});
+
+describe('getHelpTextPositions', () => {
+	afterEach(() => {
+		delete global.osfSettings;
+	});
+
+	it('returns an empty array when osfSettings is undefined', () => {
+		expect(getHelpTextPositions()).toEqual([]);
+	});
+
+	it('returns the localized help text positions', () => {
+		global.osfSettings = { helpTextPositions: ['bottom', 'top'] };
+
+		expect(getHelpTextPositions()).toEqual(['bottom', 'top']);
+	});
+});
+
+describe('getFormActionIds', () => {
+	afterEach(() => {
+		delete global.osfSettings;
+	});
+
+	it('returns an empty object when osfSettings is undefined', () => {
+		expect(getFormActionIds()).toEqual({});
+	});
+
+	it('returns the localized form action ids', () => {
+		global.osfSettings = {
+			formActionIds: {
+				adminNotification: 'admin_notification',
+				userNotification: 'user_notification',
+			},
+		};
+
+		expect(getFormActionIds()).toEqual({
+			adminNotification: 'admin_notification',
+			userNotification: 'user_notification',
+		});
 	});
 });
 

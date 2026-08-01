@@ -68,6 +68,99 @@ export function resolveFieldControl(type) {
 }
 
 /**
+ * Checks whether an input type supports the mask attribute.
+ *
+ * `Input::UNMASKABLE_TYPES` is the only definition of which input types
+ * don't support masking; it reaches the editor as
+ * `osfSettings.unmaskableTypes`. There is deliberately no JS fallback list —
+ * see `isFieldBlock()` above for why.
+ *
+ * @param {string} type Input type.
+ * @return {boolean} True if the type supports masking.
+ */
+export function supportsMask(type) {
+	const unmaskableTypes =
+		typeof osfSettings !== 'undefined' ? osfSettings?.unmaskableTypes : undefined;
+
+	if (!Array.isArray(unmaskableTypes)) {
+		return false;
+	}
+
+	return !unmaskableTypes.includes(type);
+}
+
+/**
+ * Get the valid label position values.
+ *
+ * `Field::LABEL_POSITIONS` is the only definition of this list; it reaches
+ * the editor as `osfSettings.labelPositions`. There is deliberately no JS
+ * fallback list — see `isFieldBlock()` above for why.
+ *
+ * @return {Array<string>} The valid label position values, or an empty array if none were localized.
+ */
+export function getLabelPositions() {
+	const labelPositions =
+		typeof osfSettings !== 'undefined' ? osfSettings?.labelPositions : undefined;
+
+	return Array.isArray(labelPositions) ? labelPositions : [];
+}
+
+/**
+ * Checks whether a label position places the label beside the field instead
+ * of above or below it.
+ *
+ * `Field::INLINE_LABEL_POSITIONS` is the only definition of this list; it
+ * reaches the editor as `osfSettings.inlineLabelPositions`. There is
+ * deliberately no JS fallback list — see `isFieldBlock()` above for why.
+ *
+ * @param {string} labelPosition The label position.
+ * @return {boolean} True if the label position is inline.
+ */
+export function isInlineLabelPosition(labelPosition) {
+	const inlineLabelPositions =
+		typeof osfSettings !== 'undefined' ? osfSettings?.inlineLabelPositions : undefined;
+
+	if (!Array.isArray(inlineLabelPositions)) {
+		return false;
+	}
+
+	return inlineLabelPositions.includes(labelPosition);
+}
+
+/**
+ * Get the valid help text position values.
+ *
+ * `Field::HELP_TEXT_POSITIONS` is the only definition of this list; it
+ * reaches the editor as `osfSettings.helpTextPositions`. There is
+ * deliberately no JS fallback list — see `isFieldBlock()` above for why.
+ *
+ * @return {Array<string>} The valid help text position values, or an empty array if none were localized.
+ */
+export function getHelpTextPositions() {
+	const helpTextPositions =
+		typeof osfSettings !== 'undefined' ? osfSettings?.helpTextPositions : undefined;
+
+	return Array.isArray(helpTextPositions) ? helpTextPositions : [];
+}
+
+/**
+ * Get the form action IDs.
+ *
+ * `EmailNotification::ACTION_ADMIN_NOTIFICATION` and
+ * `EmailNotification::ACTION_USER_NOTIFICATION` are the only definitions of
+ * these values; they reach the editor as `osfSettings.formActionIds`. There
+ * is deliberately no JS fallback — see `isFieldBlock()` above for why.
+ *
+ * @return {{adminNotification: string, userNotification: string}|{}} The form action IDs, or an empty object if none were localized.
+ */
+export function getFormActionIds() {
+	const formActionIds =
+		typeof osfSettings !== 'undefined' ? osfSettings?.formActionIds : undefined;
+
+	return typeof formActionIds === 'object' && formActionIds !== null ? formActionIds : {};
+}
+
+/**
  * Resolve the submission name for a field block.
  *
  * Mirrors `AbstractField::get_field_name()` (PHP): an explicit `name`

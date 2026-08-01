@@ -11,7 +11,7 @@ import Label from '../components/Label';
 import HelpText from '../components/HelpText';
 import Input from '../components/Input';
 import Textarea from '../components/Textarea';
-import { resolveFieldControl } from '../utils';
+import { isInlineLabelPosition, resolveFieldControl } from '../utils';
 
 export default function Field({
 	type = 'text',
@@ -31,7 +31,7 @@ export default function Field({
 		helpTextPosition = defaultHelpTextPosition,
 	} = attributes;
 
-	const hasInlineLabel = labelPosition === 'left' || labelPosition === 'right';
+	const hasInlineLabel = isInlineLabelPosition(labelPosition);
 
 	const label = <Label attributes={attributes} setAttributes={setAttributes} context={context} />;
 	const helpText = (

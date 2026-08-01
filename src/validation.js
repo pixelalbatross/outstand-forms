@@ -8,7 +8,22 @@
  * Each validator follows the same convention:
  * - Empty/missing values pass for all rules except `required`.
  * - Returns `true` when valid, `false` when invalid.
+ *
+ * Third-party rules are registered through the plugin's own Interactivity
+ * store namespace, mirroring `Validation\Validator::register()` on the server:
+ *
+ * `store( 'osf/form', { validators: { ruleName: ( value, params, config ) => true } } )`
  */
+
+/**
+ * WordPress dependencies
+ */
+import { store } from '@wordpress/interactivity';
+
+/**
+ * The plugin's Interactivity API store namespace.
+ */
+const NAMESPACE = 'osf/form';
 
 /**
  * Email validation regex based on HTML5 spec.
@@ -188,11 +203,14 @@ function max(value, maxValue = 0) {
 }
 
 /**
- * Map of rule names to their validator functions.
+ * Map of built-in rule names to their validator functions.
+ *
+ * Mirrors `Validator::register_default_validators()`; the two sets are locked
+ * together by src/validation-parity.test.js.
  *
  * @type {Object<string, Function>}
  */
-const validators = {
+const defaultValidators = {
 	required,
 	email,
 	url,
@@ -204,11 +222,79 @@ const validators = {
 };
 
 /**
+ * Registry of third-party validators, carried by the plugin's own store.
+ *
+ * `store()` deep-merges into a namespace-keyed registry and mutates the object
+ * in place, so the reference captured here stays live no matter whether a
+ * third-party module ran before or after this one. Seeding it with an empty
+ * object never clobbers an earlier registration.
+ *
+ * @type {Object<string, Function>}
+ */
+const { validators: customValidators } = store(NAMESPACE, { validators: {} });
+
+/**
+ * Rule names already reported as unregistered.
+ *
+ * @type {Set<string>}
+ */
+const warnedRules = new Set();
+
+/**
+ * Warn once per rule name about a rule with no client-side validator.
+ *
+ * Not gated on `NODE_ENV`: the plugin only ever ships the production bundle, so
+ * a development-only warning would be stripped from every site that could hit
+ * this. Warning once per rule name keeps it out of the submit loop.
+ *
+ * @param {string} ruleName The unregistered rule name.
+ */
+function warnUnknownRule(ruleName) {
+	if (warnedRules.has(ruleName)) {
+		return;
+	}
+
+	warnedRules.add(ruleName);
+
+	// eslint-disable-next-line no-console
+	console.warn(
+		`Outstand Forms: no client-side validator is registered for the rule "${ruleName}", ` +
+			'so the field is treated as invalid. Register one with ' +
+			`store( '${NAMESPACE}', { validators: { ${ruleName}: ( value, params, config ) => true } } ).`,
+	);
+}
+
+/**
+ * Resolve the validator function for a rule name.
+ *
+ * Registered validators take precedence over the built-in ones, matching the
+ * last-write-wins semantics of `Validator::register()`.
+ *
+ * @param {string} ruleName The rule name.
+ * @return {Function|undefined} The validator, or undefined when none is registered.
+ */
+function getValidator(ruleName) {
+	const custom = customValidators?.[ruleName];
+
+	if (typeof custom === 'function') {
+		return custom;
+	}
+
+	const builtIn = defaultValidators[ruleName];
+
+	return typeof builtIn === 'function' ? builtIn : undefined;
+}
+
+/**
  * Validate a value against a set of rules.
  *
  * Rules are keyed by validator name. A rule value of `false` disables the rule,
  * `true` runs the validator with no extra params, and any other value is passed
  * as the second argument to the validator function.
+ *
+ * A rule with no registered validator fails closed: the server is authoritative
+ * and would reject the value on submit, so reporting it as valid here is the
+ * one outcome that is always wrong.
  *
  * @param {*}      value The value to validate.
  * @param {Object} rules The validation rules keyed by validator name.
@@ -222,9 +308,11 @@ export function validate(value, rules = {}) {
 			continue;
 		}
 
-		const validator = validators[ruleName];
+		const validator = getValidator(ruleName);
 
 		if (!validator) {
+			warnUnknownRule(ruleName);
+			errors.push(ruleName);
 			continue;
 		}
 

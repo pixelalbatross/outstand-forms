@@ -4,40 +4,50 @@
 import { __ } from '@wordpress/i18n';
 
 /**
+ * Internal dependencies
+ */
+import { getHelpTextPositions, getLabelPositions } from './utils';
+
+/**
+ * Labels for the field label position values.
+ *
+ * @type {Object}
+ */
+const labelPositionLabels = {
+	top: __('Top', 'outstand-forms'),
+	left: __('Left', 'outstand-forms'),
+	right: __('Right', 'outstand-forms'),
+};
+
+/**
  * Options for the field label position.
  *
  * @type {Array}
  */
-export const labelPositionOptions = [
-	{
-		value: 'top',
-		label: __('Top', 'outstand-forms'),
-	},
-	{
-		value: 'left',
-		label: __('Left', 'outstand-forms'),
-	},
-	{
-		value: 'right',
-		label: __('Right', 'outstand-forms'),
-	},
-];
+export const labelPositionOptions = getLabelPositions().map((value) => ({
+	value,
+	label: labelPositionLabels[value] ?? value,
+}));
+
+/**
+ * Labels for the field help text position values.
+ *
+ * @type {Object}
+ */
+const helpTextPositionLabels = {
+	bottom: __('Bottom', 'outstand-forms'),
+	top: __('Top', 'outstand-forms'),
+};
 
 /**
  * Options for the field help text position.
  *
  * @type {Array}
  */
-export const helpTextPositionOptions = [
-	{
-		value: 'bottom',
-		label: __('Bottom', 'outstand-forms'),
-	},
-	{
-		value: 'top',
-		label: __('Top', 'outstand-forms'),
-	},
-];
+export const helpTextPositionOptions = getHelpTextPositions().map((value) => ({
+	value,
+	label: helpTextPositionLabels[value] ?? value,
+}));
 
 /**
  * Options for the field autocomplete.

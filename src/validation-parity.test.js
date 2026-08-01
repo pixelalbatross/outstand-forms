@@ -2,7 +2,7 @@
 /**
  * PHP/JS validator parity guard.
  *
- * `includes/classes/Validation/Validator.php` and `src/validation.js` are two
+ * `includes/Validation/Validator.php` and `src/validation.js` are two
  * independent implementations of the same validation rules, kept in sync only
  * by a comment convention ("Must match the regex used in src/validation.js").
  * Nothing enforces that convention, so this suite reads the literal source of
@@ -10,7 +10,11 @@
  *
  * - the EMAIL_REGEX pattern
  * - the URL_REGEX pattern
- * - the set of registered rule names
+ * - the set of built-in rule names
+ *
+ * Only the built-ins are compared. Both sides accept third-party rules at
+ * runtime (`Validator::register()` in PHP, the store's `validators` map in JS),
+ * and those are outside what static extraction can see.
  *
  * This lives on the JS side (rather than in PHPUnit) because the JS test
  * suite (`npm run test:js`) runs standalone in Node with no WordPress test
@@ -26,7 +30,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const PHP_VALIDATOR_PATH = path.join(__dirname, '../includes/classes/Validation/Validator.php');
+const PHP_VALIDATOR_PATH = path.join(__dirname, '../includes/Validation/Validator.php');
 const JS_VALIDATOR_PATH = path.join(__dirname, './validation.js');
 
 const phpSource = fs.readFileSync(PHP_VALIDATOR_PATH, 'utf8');
@@ -187,17 +191,17 @@ function extractPhpRuleNames(src) {
 }
 
 /**
- * Extract the rule names listed in the JS `validators` map.
+ * Extract the rule names listed in the JS `defaultValidators` map.
  *
  * @param {string} src JS source text.
  * @return {string[]} Sorted, de-duplicated rule names.
  */
 function extractJsRuleNames(src) {
-	const mapMatch = src.match(/const validators = \{([\s\S]*?)\};/);
+	const mapMatch = src.match(/const defaultValidators = \{([\s\S]*?)\};/);
 
 	if (!mapMatch) {
 		throw new Error(
-			`Parity guard could not find the JS \`validators\` map in ${JS_VALIDATOR_PATH}. ` +
+			`Parity guard could not find the JS \`defaultValidators\` map in ${JS_VALIDATOR_PATH}. ` +
 				'Update the extraction logic in validation-parity.test.js.',
 		);
 	}
@@ -207,7 +211,9 @@ function extractJsRuleNames(src) {
 	);
 
 	if (0 === names.length) {
-		throw new Error('Parity guard found the JS `validators` map but no rule names inside it.');
+		throw new Error(
+			'Parity guard found the JS `defaultValidators` map but no rule names inside it.',
+		);
 	}
 
 	return [...new Set(names)].sort();
@@ -250,7 +256,7 @@ describe('PHP/JS validator parity', () => {
 		);
 	});
 
-	it('keeps the registered rule name set identical between Validator.php and validation.js', () => {
+	it('keeps the built-in rule name set identical between Validator.php and validation.js', () => {
 		const phpRuleNames = extractPhpRuleNames(phpSource);
 		const jsRuleNames = extractJsRuleNames(jsSource);
 

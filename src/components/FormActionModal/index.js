@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from '@wordpress/element';
  */
 import { ACTION_LABELS } from '../FormActions';
 import EmailActionFields from './EmailActionFields';
+import { getFormActionIds } from '../../utils';
 import './style.css';
 
 export default function FormActionModal({
@@ -19,9 +20,11 @@ export default function FormActionModal({
 	onUpdate,
 	emailFieldOptions,
 }) {
+	const { userNotification } = getFormActionIds();
+
 	const actionId = action?.id || '';
 	const title = ACTION_LABELS[actionId] || actionId;
-	const isUserEmail = actionId === 'user_notification';
+	const isUserEmail = actionId === userNotification;
 
 	const [isMessageSelected, setIsMessageSelected] = useState(false);
 	const messageWrapperRef = useRef();

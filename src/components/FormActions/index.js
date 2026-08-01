@@ -16,10 +16,13 @@ import { __ } from '@wordpress/i18n';
  */
 import './style.css';
 import FormActionModal from '../FormActionModal';
+import { getFormActionIds } from '../../utils';
+
+const { adminNotification, userNotification } = getFormActionIds();
 
 export const ACTION_LABELS = {
-	admin_notification: __('Admin Email', 'outstand-forms'),
-	user_notification: __('User Email', 'outstand-forms'),
+	[adminNotification]: __('Admin Email', 'outstand-forms'),
+	[userNotification]: __('User Email', 'outstand-forms'),
 };
 
 export default function FormActions({ actions, onUpdateActions, emailFieldOptions }) {

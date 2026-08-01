@@ -30,7 +30,7 @@ import { __ } from '@wordpress/i18n';
  */
 import { labelPositionOptions, helpTextPositionOptions, autocompleteOptions } from '../../options';
 import { useIsDuplicateFieldName } from '../../hooks/useIsDuplicateFieldName';
-import { resolveFieldName } from '../../utils';
+import { resolveFieldName, supportsMask } from '../../utils';
 import Field from '../../fields';
 
 export default function FieldInputEdit({ attributes, setAttributes, context, clientId }) {
@@ -326,7 +326,7 @@ export default function FieldInputEdit({ attributes, setAttributes, context, cli
 						__nextHasNoMarginBottom
 					/>
 				)}
-				{!['email', 'number', 'url'].includes(type) && (
+				{supportsMask(type) && (
 					<TextControl
 						label={__('Mask', 'outstand-forms')}
 						value={mask}
