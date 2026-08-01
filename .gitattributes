@@ -1,13 +1,18 @@
 # Directories
 /.git export-ignore
 /.github export-ignore
+/__mocks__ export-ignore
+/artifacts export-ignore
 /node_modules export-ignore
 /src export-ignore
 /tests export-ignore
 
 # Files
 /.* export-ignore
+/ARCHITECTURE.md export-ignore
 /CHANGELOG.md export-ignore
+/jest.config.js export-ignore
+/playwright.config.js export-ignore
 /composer.json export-ignore
 /composer.lock export-ignore
 /package-lock.json export-ignore

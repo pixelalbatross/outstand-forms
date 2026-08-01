@@ -34,10 +34,57 @@ class Validator {
 	protected array $validators = [];
 
 	/**
+	 * Shared validator instance.
+	 *
+	 * @var ?Validator
+	 */
+	private static ?Validator $instance = null;
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
 		$this->register_default_validators();
+	}
+
+	/**
+	 * Retrieve the shared validator.
+	 *
+	 * The instance is built once and passed through a filter so third parties
+	 * can register additional validators that every submission path sees.
+	 *
+	 * @return Validator
+	 */
+	public static function instance(): Validator {
+
+		if ( null === self::$instance ) {
+			$validator = new self();
+
+			/**
+			 * Filters the shared validator.
+			 *
+			 * Register additional validators on the passed validator, or return
+			 * a different validator instance entirely.
+			 *
+			 * @param Validator $validator The validator.
+			 * @return Validator
+			 */
+			self::$instance = apply_filters( 'outstand_forms_validator', $validator );
+		}
+
+		return self::$instance;
+	}
+
+	/**
+	 * Discard the shared validator so the next call rebuilds and refilters it.
+	 *
+	 * Needed when validators are registered after the validator has already
+	 * been built (late-loading integrations, tests).
+	 *
+	 * @return void
+	 */
+	public static function reset_instance(): void {
+		self::$instance = null;
 	}
 
 	/**

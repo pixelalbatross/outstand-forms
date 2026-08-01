@@ -1,5 +1,6 @@
 {
   "name": "outstand/forms",
+  "description": "Build forms with the block editor.",
   "type": "wordpress-plugin",
   "license": "GPL-3.0-or-later",
   "authors": [

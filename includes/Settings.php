@@ -65,26 +65,26 @@ class Settings extends BaseModule {
 		);
 
 		add_settings_section(
-			'outstand_forms_turnstile_section',
+			'os_forms_turnstile_section',
 			__( 'Cloudflare Turnstile', 'outstand-forms' ),
 			[ $this, 'render_section_description' ],
 			self::PAGE_SLUG
 		);
 
 		add_settings_field(
-			'outstand_forms_turnstile_site_key',
+			'os_forms_turnstile_site_key',
 			__( 'Site Key', 'outstand-forms' ),
 			[ $this, 'render_site_key_field' ],
 			self::PAGE_SLUG,
-			'outstand_forms_turnstile_section'
+			'os_forms_turnstile_section'
 		);
 
 		add_settings_field(
-			'outstand_forms_turnstile_secret_key',
+			'os_forms_turnstile_secret_key',
 			__( 'Secret Key', 'outstand-forms' ),
 			[ $this, 'render_secret_key_field' ],
 			self::PAGE_SLUG,
-			'outstand_forms_turnstile_section'
+			'os_forms_turnstile_section'
 		);
 	}
 

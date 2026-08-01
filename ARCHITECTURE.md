@@ -343,10 +343,16 @@ The `Validation\Validator` class provides server-side validation that mirrors th
 ### Usage
 
 ```php
-$validator = new Validator();
+$validator = Validator::instance();
 $result = $validator->validate( $value, $rules );
 // $result = [ 'is_valid' => bool, 'errors' => [ 'ruleName', ... ] ]
 ```
+
+`Validator::instance()` builds the validator once and passes it through the
+`outstand_forms_validator` filter, mirroring `FieldFactory::instance()`. Both
+submission paths read from that shared instance, so a validator registered on the
+filter applies to the REST route and the no-JavaScript fallback alike.
+`Validator::reset_instance()` discards it for late registrations and tests.
 
 ### Built-in Validators
 
@@ -364,9 +370,12 @@ $result = $validator->validate( $value, $rules );
 ### Custom Validator Registration
 
 ```php
-$validator = new Validator();
-$validator->register( 'phone', function ( $value, $params, $config ) {
-    return preg_match( '/^\+?[\d\s\-()]+$/', $value );
+add_filter( 'outstand_forms_validator', function ( $validator ) {
+    $validator->register( 'phone', function ( $value, $params, $config ) {
+        return preg_match( '/^\+?[\d\s\-()]+$/', $value );
+    } );
+
+    return $validator;
 } );
 ```
 
@@ -456,9 +465,43 @@ add_action( 'outstand_forms_form_submitted', function ( $form_id, $post_id, $san
 }, 10, 4 );
 ```
 
+**`outstand_forms_validator` filter** — Register custom server-side validators on the shared validator (see [Custom Validator Registration](#custom-validator-registration)).
+
+**`outstand_forms_form_pre_submission_check` filter** — Run a security or spam check with full form context, before field validation. Return `true` to continue or a `WP_Error` to abort. Used by the Turnstile block to verify its token:
+
+```php
+add_filter( 'outstand_forms_form_pre_submission_check', function ( $result, $request ) {
+    if ( is_wp_error( $result ) ) {
+        return $result;
+    }
+
+    return my_spam_check( $request ) ? true : new WP_Error( 'spam', 'Rejected.', [ 'status' => 400 ] );
+}, 10, 2 );
+```
+
+**`outstand_forms_rest_form_submit_args` filter** — Add arguments to the submission REST endpoint, so a custom field or check receives its own sanitized parameter:
+
+```php
+add_filter( 'outstand_forms_rest_form_submit_args', function ( $args ) {
+    $args['my-token'] = [
+        'type'              => 'string',
+        'required'          => false,
+        'sanitize_callback' => 'sanitize_text_field',
+    ];
+
+    return $args;
+} );
+```
+
+**`outstand_forms_rate_limit` filter** — Maximum submissions per client IP per minute (default 5; return 0 to disable). Signature: `( int $max_submissions, string $form_id )`.
+
+**`outstand_forms_email_notification_args` filter** — Filter the notification email (`to`, `subject`, `body`, `headers`) before `wp_mail()`. Signature: `( array $args, string $form_id, array $sanitized_data, array $field_configs, array $action )`.
+
+**`outstand_forms_email_notification_sent` / `outstand_forms_email_notification_failed` actions** — Fire after `wp_mail()` succeeds or fails, with the same five arguments as the filter above.
+
 **Actions** — Inject content around form/fields:
 
-- `outstand_forms_before_fields` / `outstand_forms_after_fields` — before/after fields wrapper content
+- `outstand_forms_before_fields` / `outstand_forms_after_fields` — before/after fields wrapper content, both receiving the form ID
 
 ### JavaScript
 

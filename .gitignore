@@ -6,6 +6,12 @@ node_modules/
 .node_history
 package-lock.json
 **/package-lock.json
+.wp-env.override.json
+.phpunit.result.cache
+artifacts/
+coverage/
+tests/coverage/
+.playwright-mcp/
 
 #---------------------------
 # System
@@ -21,18 +27,3 @@ package-lock.json
 *.swp
 Thumbs.db
 Desktop.ini
-
-#---------------------------
-# Working notes (not shipped)
-#---------------------------
-/PLAN.md
-/PROGRESS.md
-/REVIEW.md
-/CODE-REVIEW.md
-/REVIEW-SOT-INTERACTIVITY.md
-.wp-env.override.json
-.phpunit.result.cache
-artifacts/
-coverage/
-tests/coverage/
-.playwright-mcp/

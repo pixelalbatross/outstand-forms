@@ -78,14 +78,14 @@ class SettingsTest extends \WP_UnitTestCase {
 		$settings = new Settings();
 		$settings->register_settings();
 
-		$this->assertArrayHasKey( 'outstand_forms_turnstile_section', $wp_settings_sections[ Settings::PAGE_SLUG ] );
+		$this->assertArrayHasKey( 'os_forms_turnstile_section', $wp_settings_sections[ Settings::PAGE_SLUG ] );
 		$this->assertArrayHasKey(
-			'outstand_forms_turnstile_site_key',
-			$wp_settings_fields[ Settings::PAGE_SLUG ]['outstand_forms_turnstile_section']
+			'os_forms_turnstile_site_key',
+			$wp_settings_fields[ Settings::PAGE_SLUG ]['os_forms_turnstile_section']
 		);
 		$this->assertArrayHasKey(
-			'outstand_forms_turnstile_secret_key',
-			$wp_settings_fields[ Settings::PAGE_SLUG ]['outstand_forms_turnstile_section']
+			'os_forms_turnstile_secret_key',
+			$wp_settings_fields[ Settings::PAGE_SLUG ]['os_forms_turnstile_section']
 		);
 	}
 

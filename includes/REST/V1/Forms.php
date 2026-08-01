@@ -149,7 +149,7 @@ class Forms extends AbstractRoute {
 		$sanitized_data = $this->sanitize_form_data( $params, $field_configs );
 
 		// Validate all fields.
-		$validator         = new Validator();
+		$validator         = Validator::instance();
 		$validation_errors = [];
 
 		foreach ( $field_configs as $field_name => $config ) {
