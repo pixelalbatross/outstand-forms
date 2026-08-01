@@ -350,6 +350,132 @@ class FormSubmissionTest extends \WP_UnitTestCase {
 	}
 
 	/**
+	 * With no success or state query arg present, the render state must be
+	 * the untouched default.
+	 */
+	public function test_get_render_state_defaults_when_no_query_args_present(): void {
+		$state = FormSubmission::get_render_state( 'form-a' );
+
+		$this->assertFalse( $state['isSubmitted'] );
+		$this->assertFalse( $state['hasSubmissionError'] );
+		$this->assertSame( '', $state['submissionMessage'] );
+		$this->assertSame( [], $state['errors'] );
+		$this->assertSame( [], $state['values'] );
+	}
+
+	/**
+	 * An empty form ID must short-circuit to the default state.
+	 */
+	public function test_get_render_state_returns_default_for_empty_form_id(): void {
+		$_GET[ FormSubmission::SUCCESS_ARG ] = 'form-a';
+
+		$state = FormSubmission::get_render_state( '' );
+
+		$this->assertFalse( $state['isSubmitted'] );
+	}
+
+	/**
+	 * A state token that does not match the expected 32-char alphanumeric
+	 * shape must be rejected before ever touching the transient store.
+	 */
+	public function test_get_render_state_rejects_malformed_token(): void {
+		$_GET[ FormSubmission::STATE_ARG ] = 'not-a-valid-token';
+
+		$state = FormSubmission::get_render_state( 'form-a' );
+
+		$this->assertFalse( $state['hasSubmissionError'] );
+	}
+
+	/**
+	 * A well-formed token for which no transient was ever stored (or that
+	 * has already expired) must resolve to the default state, not an error.
+	 */
+	public function test_get_render_state_returns_default_when_transient_is_absent(): void {
+		$_GET[ FormSubmission::STATE_ARG ] = str_repeat( 'a', 32 );
+
+		$state = FormSubmission::get_render_state( 'form-a' );
+
+		$this->assertFalse( $state['hasSubmissionError'] );
+		$this->assertFalse( $state['isSubmitted'] );
+	}
+
+	/**
+	 * Once the stored failure state's transient expires (or is otherwise
+	 * removed), replaying its token must resolve to the default state rather
+	 * than stale data.
+	 */
+	public function test_get_render_state_returns_default_after_transient_expires(): void {
+		$_POST = $this->build_post(
+			[
+				'field_1' => '',
+				'field_2' => 'abc',
+			]
+		);
+
+		$this->handler->handle_submission();
+
+		$token = $this->extract_state_token();
+
+		delete_transient( 'osf_submission_' . $token );
+
+		$_GET[ FormSubmission::STATE_ARG ] = $token;
+
+		$state = FormSubmission::get_render_state( 'form-a' );
+
+		$this->assertFalse( $state['hasSubmissionError'] );
+		$this->assertFalse( $state['isSubmitted'] );
+	}
+
+	/**
+	 * The state token must be a fixed-length alphanumeric string that differs
+	 * between failures, so it cannot be predicted or reused across submissions.
+	 */
+	public function test_state_token_is_unguessable(): void {
+		$_POST = $this->build_post(
+			[
+				'field_1' => '',
+				'field_2' => 'abc',
+			]
+		);
+		$this->handler->handle_submission();
+		$token_one = $this->extract_state_token();
+
+		$_POST = $this->build_post(
+			[
+				'field_1' => '',
+				'field_2' => 'abc',
+			]
+		);
+		$this->handler->handle_submission();
+		$token_two = $this->extract_state_token();
+
+		$this->assertMatchesRegularExpression( '/^[A-Za-z0-9]{32}$/', $token_one );
+		$this->assertMatchesRegularExpression( '/^[A-Za-z0-9]{32}$/', $token_two );
+		$this->assertNotSame( $token_one, $token_two );
+	}
+
+	/**
+	 * When the submitted post ID does not resolve to a permalink (e.g. the
+	 * post no longer exists), the redirect must fall back to the home URL
+	 * instead of producing a broken or empty Location header.
+	 */
+	public function test_redirect_falls_back_to_home_url_when_permalink_is_missing(): void {
+		$_POST = $this->build_post(
+			[
+				'field_1' => 'visitor@example.com',
+				'field_2' => '12345',
+			],
+			'form-a',
+			999999999
+		);
+
+		$this->handler->handle_submission();
+
+		$this->assertStringStartsWith( home_url( '/' ), $this->redirect_url );
+		$this->assertStringContainsString( FormSubmission::STATE_ARG, $this->redirect_url );
+	}
+
+	/**
 	 * Build a valid $_POST payload for the page submission.
 	 *
 	 * @param array    $fields  The submitted field values.

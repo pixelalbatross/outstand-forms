@@ -2,6 +2,7 @@
 
 namespace Outstand\WP\Forms\Tests\Unit;
 
+use Outstand\WP\Forms\FieldFactory;
 use Outstand\WP\Forms\FormBlockParser;
 
 class FormBlockParserTest extends \WP_UnitTestCase {
@@ -87,5 +88,161 @@ class FormBlockParserTest extends \WP_UnitTestCase {
 
 		$this->assertSame( 'osf/form-submit', $block['blockName'] );
 		$this->assertNull( $parser->find_block( 'form-a', $post_id, 'osf/nonexistent' ) );
+	}
+
+	/**
+	 * A non-existent post must return empty structures rather than erroring.
+	 */
+	public function test_extract_form_data_returns_empty_for_missing_post(): void {
+		$parser = new FormBlockParser();
+		$data   = $parser->extract_form_data( 'form-a', 999999999 );
+
+		$this->assertSame( [], $data['form_attributes'] );
+		$this->assertSame( [], $data['field_configs'] );
+	}
+
+	/**
+	 * A post with empty content must return empty structures.
+	 */
+	public function test_extract_form_data_returns_empty_for_empty_content(): void {
+		$post_id = self::factory()->post->create( [ 'post_content' => '' ] );
+
+		$parser = new FormBlockParser();
+		$data   = $parser->extract_form_data( 'form-a', $post_id );
+
+		$this->assertSame( [], $data['form_attributes'] );
+		$this->assertSame( [], $data['field_configs'] );
+	}
+
+	/**
+	 * The find_block() method must return null rather than error for a non-existent post.
+	 */
+	public function test_find_block_returns_null_for_missing_post(): void {
+		$parser = new FormBlockParser();
+
+		$this->assertNull( $parser->find_block( 'form-a', 999999999, 'osf/form-submit' ) );
+	}
+
+	/**
+	 * A field block wrapped in another block (e.g. a group) inside form-fields
+	 * must still be collected into the field configs.
+	 */
+	public function test_extract_form_data_collects_field_blocks_nested_in_wrappers(): void {
+		$content = '<!-- wp:osf/form {"formId":"form-nested-fields"} --><!-- wp:osf/form-fields --><!-- wp:group --><!-- wp:osf/field-input {"fieldId":1,"type":"text","label":"Nested"} /--><!-- /wp:group --><!-- /wp:osf/form-fields --><!-- /wp:osf/form -->';
+		$post_id = self::factory()->post->create( [ 'post_content' => $content ] );
+
+		$parser = new FormBlockParser();
+		$data   = $parser->extract_form_data( 'form-nested-fields', $post_id );
+
+		$this->assertArrayHasKey( 'field_1', $data['field_configs'] );
+	}
+
+	/**
+	 * The find_block() method must recurse through wrapper blocks to find the target block.
+	 */
+	public function test_find_block_recurses_into_nested_wrappers(): void {
+		$content = '<!-- wp:osf/form {"formId":"form-deep"} --><!-- wp:osf/form-fields --><!-- wp:group --><!-- wp:osf/field-turnstile /--><!-- /wp:group --><!-- /wp:osf/form-fields --><!-- /wp:osf/form -->';
+		$post_id = self::factory()->post->create( [ 'post_content' => $content ] );
+
+		$parser = new FormBlockParser();
+		$block  = $parser->find_block( 'form-deep', $post_id, 'osf/field-turnstile' );
+
+		$this->assertSame( 'osf/field-turnstile', $block['blockName'] );
+	}
+
+	/**
+	 * A field type unsupported by the field factory must be skipped, while
+	 * sibling supported fields must still be built.
+	 */
+	public function test_extract_form_data_skips_unsupported_field_type(): void {
+		$content = '<!-- wp:osf/form {"formId":"form-unsupported"} --><!-- wp:osf/form-fields --><!-- wp:osf/field-input {"fieldId":1,"type":"not-a-real-type","label":"Ghost"} /--><!-- wp:osf/field-input {"fieldId":2,"type":"text","label":"Real"} /--><!-- /wp:osf/form-fields --><!-- /wp:osf/form -->';
+		$post_id = self::factory()->post->create( [ 'post_content' => $content ] );
+
+		$parser = new FormBlockParser();
+		$data   = $parser->extract_form_data( 'form-unsupported', $post_id );
+
+		$this->assertArrayNotHasKey( 'field_1', $data['field_configs'] );
+		$this->assertArrayHasKey( 'field_2', $data['field_configs'] );
+	}
+
+	/**
+	 * A field-input block without a `type` attribute must default to `text`.
+	 */
+	public function test_field_input_without_type_attribute_defaults_to_text(): void {
+		$content = '<!-- wp:osf/form {"formId":"form-default-type"} --><!-- wp:osf/form-fields --><!-- wp:osf/field-input {"fieldId":1,"label":"Untyped"} /--><!-- /wp:osf/form-fields --><!-- /wp:osf/form -->';
+		$post_id = self::factory()->post->create( [ 'post_content' => $content ] );
+
+		$parser = new FormBlockParser();
+		$data   = $parser->extract_form_data( 'form-default-type', $post_id );
+
+		$this->assertSame( 'text', $data['field_configs']['field_1']['type'] );
+	}
+
+	/**
+	 * A field-textarea block's own `type` attribute must be ignored; its type
+	 * is always resolved to `textarea`.
+	 */
+	public function test_field_textarea_type_is_always_textarea(): void {
+		$content = '<!-- wp:osf/form {"formId":"form-textarea-type"} --><!-- wp:osf/form-fields --><!-- wp:osf/field-textarea {"fieldId":1,"type":"email","label":"Message"} /--><!-- /wp:osf/form-fields --><!-- /wp:osf/form -->';
+		$post_id = self::factory()->post->create( [ 'post_content' => $content ] );
+
+		$parser = new FormBlockParser();
+		$data   = $parser->extract_form_data( 'form-textarea-type', $post_id );
+
+		$this->assertSame( 'textarea', $data['field_configs']['field_1']['type'] );
+	}
+
+	/**
+	 * A synced pattern whose reusable block post has been emptied must resolve
+	 * to no fields rather than erroring.
+	 */
+	public function test_extract_form_data_handles_empty_synced_pattern(): void {
+		$pattern_id = self::factory()->post->create(
+			[
+				'post_type'    => 'wp_block',
+				'post_content' => '',
+			]
+		);
+		$post_id    = self::factory()->post->create(
+			[ 'post_content' => sprintf( '<!-- wp:block {"ref":%d} /-->', $pattern_id ) ]
+		);
+
+		$parser = new FormBlockParser();
+		$data   = $parser->extract_form_data( 'form-a', $post_id );
+
+		$this->assertSame( [], $data['field_configs'] );
+	}
+
+	/**
+	 * A synced pattern referencing a post that no longer exists must resolve
+	 * to no fields rather than erroring.
+	 */
+	public function test_extract_form_data_handles_missing_synced_pattern(): void {
+		$post_id = self::factory()->post->create( [ 'post_content' => '<!-- wp:block {"ref":999999999} /-->' ] );
+
+		$parser = new FormBlockParser();
+		$data   = $parser->extract_form_data( 'form-a', $post_id );
+
+		$this->assertSame( [], $data['field_configs'] );
+	}
+
+	/**
+	 * A parser built with an explicit field factory must use it instead of the shared registry.
+	 */
+	public function test_constructor_uses_the_provided_field_factory(): void {
+		$factory = new FieldFactory();
+		$factory->register(
+			'example-custom',
+			[ 'sanitize' => 'sanitize_title' ]
+		);
+
+		$content = '<!-- wp:osf/form {"formId":"form-custom"} --><!-- wp:osf/form-fields --><!-- wp:osf/field-input {"fieldId":9,"type":"example-custom","label":"Custom"} /--><!-- /wp:osf/form-fields --><!-- /wp:osf/form -->';
+		$post_id = self::factory()->post->create( [ 'post_content' => $content ] );
+
+		$parser = new FormBlockParser( $factory );
+		$data   = $parser->extract_form_data( 'form-custom', $post_id );
+
+		$this->assertArrayHasKey( 'field_9', $data['field_configs'] );
+		$this->assertSame( 'example-custom', $data['field_configs']['field_9']['type'] );
 	}
 }
