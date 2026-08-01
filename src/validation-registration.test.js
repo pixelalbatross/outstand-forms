@@ -68,6 +68,15 @@ describe('client-side validator registration', () => {
 		expect(console).toHaveWarned();
 	});
 
+	it('warns only once per unregistered rule name', () => {
+		validate('anything', { repeatedlyUnregistered: true });
+		validate('anything-else', { repeatedlyUnregistered: true });
+
+		expect(console).toHaveWarned();
+		// eslint-disable-next-line no-console -- the warning itself is what this asserts.
+		expect(console.warn).toHaveBeenCalledTimes(1);
+	});
+
 	it('still skips a rule that is disabled but unregistered', () => {
 		expect(validate('anything', { disabledUnknownRule: false })).toEqual({
 			isValid: true,

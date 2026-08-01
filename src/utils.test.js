@@ -9,6 +9,7 @@ import {
 	getFormActionIds,
 	getHelpTextPositions,
 	getLabelPositions,
+	isFieldBlock,
 	isInlineLabelPosition,
 	resolveFieldControl,
 	resolveFieldName,
@@ -64,6 +65,40 @@ describe('findBlocks', () => {
 
 	it('defaults to an empty block list', () => {
 		expect(findBlocks(() => true)).toEqual([]);
+	});
+});
+
+describe('isFieldBlock', () => {
+	afterEach(() => {
+		delete global.osfSettings;
+	});
+
+	it('returns false when osfSettings is undefined', () => {
+		expect(isFieldBlock({ name: 'osf/field-input' })).toBe(false);
+	});
+
+	it('returns false when fieldBlockNames is not an array', () => {
+		global.osfSettings = { fieldBlockNames: 'nope' };
+
+		expect(isFieldBlock({ name: 'osf/field-input' })).toBe(false);
+	});
+
+	it('returns true for a block name declared by PHP', () => {
+		global.osfSettings = { fieldBlockNames: ['osf/field-input', 'osf/field-textarea'] };
+
+		expect(isFieldBlock({ name: 'osf/field-input' })).toBe(true);
+	});
+
+	it('returns false for a block name not declared by PHP', () => {
+		global.osfSettings = { fieldBlockNames: ['osf/field-input'] };
+
+		expect(isFieldBlock({ name: 'core/paragraph' })).toBe(false);
+	});
+
+	it('returns false when the block is missing a name', () => {
+		global.osfSettings = { fieldBlockNames: ['osf/field-input'] };
+
+		expect(isFieldBlock({})).toBe(false);
 	});
 });
 
