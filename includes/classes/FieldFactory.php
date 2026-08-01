@@ -90,6 +90,11 @@ class FieldFactory {
 	 *   callable( array $rules, array $attributes ): array for full control.
 	 * - `sanitize`: callable( mixed $value ): mixed. Defaults to
 	 *   `sanitize_text_field`.
+	 * - `control`: string naming the editor control that renders this type
+	 *   (e.g. `input`, `textarea`). Read by the block editor, not by
+	 *   rendering or validation. Defaults to `input`.
+	 * - `label`: string shown for this type in the block editor. Defaults to
+	 *   the type key with its first letter capitalized.
 	 *
 	 * @param string $type       Field type.
 	 * @param array  $definition Type definition.
@@ -115,6 +120,16 @@ class FieldFactory {
 		$sanitize = $definition['sanitize'] ?? null;
 		if ( null !== $sanitize && ! is_callable( $sanitize ) ) {
 			throw new InvalidArgumentException( "Field type {$type}: sanitize must be callable" ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+		}
+
+		$control = $definition['control'] ?? null;
+		if ( null !== $control && ! is_string( $control ) ) {
+			throw new InvalidArgumentException( "Field type {$type}: control must be a string" ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+		}
+
+		$label = $definition['label'] ?? null;
+		if ( null !== $label && ! is_string( $label ) ) {
+			throw new InvalidArgumentException( "Field type {$type}: label must be a string" ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 		}
 
 		$this->field_types[ $type ] = $definition;
@@ -164,6 +179,31 @@ class FieldFactory {
 	}
 
 	/**
+	 * Get the registered field types, formatted for the block editor.
+	 *
+	 * Rendering, validation and sanitization all read `$field_types`
+	 * directly; this is the one accessor meant for consumers outside the
+	 * class, e.g. localizing the registry to the block editor so it can
+	 * offer every registered type, not just the built-ins.
+	 *
+	 * @return array<int, array{type: string, label: string, control: string}>
+	 */
+	public function get_registered_types(): array {
+
+		$types = [];
+
+		foreach ( $this->field_types as $type => $definition ) {
+			$types[] = [
+				'type'    => $type,
+				'label'   => $definition['label'] ?? ucfirst( $type ),
+				'control' => $definition['control'] ?? 'input',
+			];
+		}
+
+		return $types;
+	}
+
+	/**
 	 * Get the built-in field type definitions.
 	 *
 	 * @return array<string, array>
@@ -193,6 +233,7 @@ class FieldFactory {
 					return new TextareaComponent( $field );
 				},
 				'sanitize'  => 'sanitize_textarea_field',
+				'control'   => 'textarea',
 			],
 			'url'      => [
 				'rules'    => [ 'url' => true ],

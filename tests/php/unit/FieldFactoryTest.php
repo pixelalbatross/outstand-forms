@@ -226,4 +226,119 @@ class FieldFactoryTest extends \WP_UnitTestCase {
 		$this->assertTrue( $factory->supports( 'rating' ) );
 		$this->assertSame( 4, FieldFactory::instance()->sanitize( 'rating', '4.7' ) );
 	}
+
+	/**
+	 * The get_registered_types() method must describe every built-in type for the editor.
+	 */
+	public function test_get_registered_types_includes_built_ins(): void {
+		$factory = new FieldFactory();
+		$types   = $factory->get_registered_types();
+
+		$by_type = [];
+		foreach ( $types as $definition ) {
+			$by_type[ $definition['type'] ] = $definition;
+		}
+
+		foreach ( [ 'email', 'number', 'password', 'tel', 'text', 'url' ] as $type ) {
+			$this->assertArrayHasKey( $type, $by_type );
+			$this->assertSame( 'input', $by_type[ $type ]['control'] );
+		}
+
+		$this->assertSame( 'textarea', $by_type['textarea']['control'] );
+	}
+
+	/**
+	 * The get_registered_types() method must default a bare definition's label and control.
+	 */
+	public function test_get_registered_types_defaults_label_and_control(): void {
+		$factory = new FieldFactory();
+		$factory->register( 'code', [] );
+
+		$types = $factory->get_registered_types();
+
+		$by_type = [];
+		foreach ( $types as $definition ) {
+			$by_type[ $definition['type'] ] = $definition;
+		}
+
+		$this->assertSame( 'Code', $by_type['code']['label'] );
+		$this->assertSame( 'input', $by_type['code']['control'] );
+	}
+
+	/**
+	 * The get_registered_types() method must honor an explicit label and control.
+	 */
+	public function test_get_registered_types_honors_explicit_label_and_control(): void {
+		$factory = new FieldFactory();
+		$factory->register(
+			'signature',
+			[
+				'label'   => 'Signature',
+				'control' => 'signature-pad',
+			]
+		);
+
+		$types = $factory->get_registered_types();
+
+		$by_type = [];
+		foreach ( $types as $definition ) {
+			$by_type[ $definition['type'] ] = $definition;
+		}
+
+		$this->assertSame( 'Signature', $by_type['signature']['label'] );
+		$this->assertSame( 'signature-pad', $by_type['signature']['control'] );
+	}
+
+	/**
+	 * A type registered by a third party through the shared factory filter
+	 * must show up in the registered types exposed to the editor.
+	 */
+	public function test_get_registered_types_includes_third_party_type(): void {
+		$register = function ( FieldFactory $factory ): FieldFactory {
+			$factory->register(
+				'rating',
+				[
+					'label'    => 'Rating',
+					'control'  => 'rating',
+					'sanitize' => 'absint',
+				]
+			);
+
+			return $factory;
+		};
+		add_filter( 'outstand_forms_field_factory', $register );
+
+		$types = FieldFactory::instance()->get_registered_types();
+
+		remove_filter( 'outstand_forms_field_factory', $register );
+
+		$by_type = [];
+		foreach ( $types as $definition ) {
+			$by_type[ $definition['type'] ] = $definition;
+		}
+
+		$this->assertArrayHasKey( 'rating', $by_type );
+		$this->assertSame( 'Rating', $by_type['rating']['label'] );
+		$this->assertSame( 'rating', $by_type['rating']['control'] );
+	}
+
+	/**
+	 * The register() method must reject a non-string control.
+	 */
+	public function test_register_throws_on_invalid_control(): void {
+		$factory = new FieldFactory();
+
+		$this->expectException( InvalidArgumentException::class );
+		$factory->register( 'broken', [ 'control' => [ 'not-a-string' ] ] );
+	}
+
+	/**
+	 * The register() method must reject a non-string label.
+	 */
+	public function test_register_throws_on_invalid_label(): void {
+		$factory = new FieldFactory();
+
+		$this->expectException( InvalidArgumentException::class );
+		$factory->register( 'broken', [ 'label' => [ 'not-a-string' ] ] );
+	}
 }

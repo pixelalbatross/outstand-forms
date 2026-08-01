@@ -1,6 +1,7 @@
 /**
  * WordPress dependencies
  */
+import { Notice } from '@wordpress/components';
 import { __, sprintf } from '@wordpress/i18n';
 
 /**
@@ -10,6 +11,7 @@ import Label from '../components/Label';
 import HelpText from '../components/HelpText';
 import Input from '../components/Input';
 import Textarea from '../components/Textarea';
+import { resolveFieldControl } from '../utils';
 
 export default function Field({
 	type = 'text',
@@ -36,14 +38,16 @@ export default function Field({
 		<HelpText attributes={attributes} setAttributes={setAttributes} context={context} />
 	);
 
-	let field = null;
-	switch (type) {
-		case 'text':
-		case 'email':
-		case 'number':
-		case 'password':
-		case 'tel':
-		case 'url':
+	// The `control` names the JS component that renders a type, mirroring
+	// `FieldFactory::get_registered_types()` on the server. A type absent
+	// from the registry — unregistered, or from a plugin that has since
+	// been deactivated — resolves to `undefined` and falls through to the
+	// warning below rather than rendering a silent blank gap.
+	const control = resolveFieldControl(type);
+
+	let field;
+	switch (control) {
+		case 'input':
 			field = (
 				<Input
 					type={type}
@@ -59,8 +63,18 @@ export default function Field({
 			);
 			break;
 		default:
-			// Unknown field type - return null to avoid rendering errors
-			field = null;
+			field = (
+				<Notice status="warning" isDismissible={false}>
+					{sprintf(
+						/* translators: %s is the field type */
+						__(
+							'Unknown field type "%s". Is the plugin that registers it active?',
+							'outstand-forms',
+						),
+						type,
+					)}
+				</Notice>
+			);
 			break;
 	}
 

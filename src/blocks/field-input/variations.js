@@ -1,27 +1,39 @@
+/* eslint-disable import/no-extraneous-dependencies */
 /**
  * WordPress dependencies
  */
+import { plugins as genericIcon } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
-import { text, email, hash, lock, phone, link } from './icon';
 
-const variations = [
-	{
-		name: 'text',
+/**
+ * Internal dependencies
+ */
+import { text, email, hash, lock, phone, link } from './icon';
+import { buildFieldInputVariations } from './get-variations';
+import { getFieldTypes } from '../../utils';
+
+/**
+ * Editorial metadata for the built-in field types.
+ *
+ * `osfSettings.fieldTypes` (the field type registry, see
+ * `FieldFactory::get_registered_types()`) is the source of truth for *which*
+ * types exist; this lookup only adds presentation details that aren't
+ * derivable from the registry — title, icon and keywords — and is what
+ * keeps the six built-ins looking exactly as they did before the registry
+ * existed. See `buildFieldInputVariations()` for how the two are combined.
+ */
+const FIELD_TYPE_METADATA = {
+	text: {
 		title: __('Text', 'outstand-forms'),
-		isDefault: true,
 		icon: text,
+		isDefault: true,
 		keywords: [
 			__('field', 'outstand-forms'),
 			__('input', 'outstand-forms'),
 			__('text', 'outstand-forms'),
 		],
-		attributes: {
-			type: 'text',
-		},
-		scope: ['block', 'inserter', 'transform'],
 	},
-	{
-		name: 'email',
+	email: {
 		title: __('Email', 'outstand-forms'),
 		icon: email,
 		keywords: [
@@ -29,14 +41,9 @@ const variations = [
 			__('input', 'outstand-forms'),
 			__('email', 'outstand-forms'),
 		],
-		attributes: {
-			type: 'email',
-			autocomplete: 'email',
-		},
-		scope: ['block', 'inserter', 'transform'],
+		attributes: { autocomplete: 'email' },
 	},
-	{
-		name: 'number',
+	number: {
 		title: __('Number', 'outstand-forms'),
 		icon: hash,
 		keywords: [
@@ -44,13 +51,8 @@ const variations = [
 			__('input', 'outstand-forms'),
 			__('number', 'outstand-forms'),
 		],
-		attributes: {
-			type: 'number',
-		},
-		scope: ['block', 'inserter', 'transform'],
 	},
-	{
-		name: 'password',
+	password: {
 		title: __('Password', 'outstand-forms'),
 		icon: lock,
 		keywords: [
@@ -58,14 +60,9 @@ const variations = [
 			__('input', 'outstand-forms'),
 			__('password', 'outstand-forms'),
 		],
-		attributes: {
-			type: 'password',
-			autocomplete: 'new-password',
-		},
-		scope: ['block', 'inserter', 'transform'],
+		attributes: { autocomplete: 'new-password' },
 	},
-	{
-		name: 'tel',
+	tel: {
 		title: __('Phone', 'outstand-forms'),
 		icon: phone,
 		keywords: [
@@ -74,14 +71,9 @@ const variations = [
 			__('telephone', 'outstand-forms'),
 			__('tel', 'outstand-forms'),
 		],
-		attributes: {
-			type: 'tel',
-			autocomplete: 'tel',
-		},
-		scope: ['block', 'inserter', 'transform'],
+		attributes: { autocomplete: 'tel' },
 	},
-	{
-		name: 'url',
+	url: {
 		title: __('URL', 'outstand-forms'),
 		icon: link,
 		keywords: [
@@ -90,13 +82,11 @@ const variations = [
 			__('url', 'outstand-forms'),
 			__('link', 'outstand-forms'),
 		],
-		attributes: {
-			type: 'url',
-			autocomplete: 'url',
-		},
-		scope: ['block', 'inserter', 'transform'],
+		attributes: { autocomplete: 'url' },
 	},
-];
+};
+
+const variations = buildFieldInputVariations(getFieldTypes(), FIELD_TYPE_METADATA, genericIcon);
 
 variations.forEach((variation) => {
 	if (variation.isActive) {

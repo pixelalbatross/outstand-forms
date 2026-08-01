@@ -43,6 +43,7 @@ class Plugin {
 
 		add_action( 'init', [ $this, 'register_blocks' ] );
 		add_filter( 'block_categories_all', [ $this, 'register_block_categories' ] );
+		add_filter( 'block_type_metadata', [ $this, 'filter_field_input_type_enum' ] );
 		add_action( 'enqueue_block_editor_assets', [ $this, 'blocks_editor_scripts' ] );
 	}
 
@@ -93,6 +94,7 @@ class Plugin {
 					],
 				],
 				'fieldBlockNames' => FormBlockParser::FIELD_BLOCK_NAMES,
+				'fieldTypes'      => FieldFactory::instance()->get_registered_types(),
 			]
 		);
 	}
@@ -111,5 +113,47 @@ class Plugin {
 		];
 
 		return $categories;
+	}
+
+	/**
+	 * Restrict the field-input block's `type` attribute to registered field types.
+	 *
+	 * `field-input/block.json` ships without an `enum` for `type` so the
+	 * field type registry stays the single source of truth: third parties can
+	 * register a type through the `outstand_forms_field_factory` filter and
+	 * have it selectable without a block.json change. But an attribute with
+	 * no `enum` is only validated as "a string" by
+	 * {@see WP_Block_Type::prepare_attributes_for_render()}, so a type that
+	 * no longer exists in the registry (a typo, or a plugin that registered
+	 * it later deactivated) would otherwise reach
+	 * {@see FieldFactory::create()} and throw. Rebuilding the `enum` here,
+	 * from the same registry, restores that safety net: an unrecognized
+	 * value reverts to the attribute's default at render time, exactly as it
+	 * did when the six built-ins were hardcoded.
+	 *
+	 * @param array $metadata Block type metadata.
+	 * @return array The (possibly) updated block type metadata.
+	 */
+	public function filter_field_input_type_enum( array $metadata ): array {
+
+		$name = $metadata['name'] ?? '';
+		if ( 'osf/field-input' !== $name ) {
+			return $metadata;
+		}
+
+		if ( ! isset( $metadata['attributes']['type'] ) ) {
+			return $metadata;
+		}
+
+		$input_types = array_filter(
+			FieldFactory::instance()->get_registered_types(),
+			static function ( array $field_type ): bool {
+				return 'input' === $field_type['control'];
+			}
+		);
+
+		$metadata['attributes']['type']['enum'] = array_values( wp_list_pluck( $input_types, 'type' ) );
+
+		return $metadata;
 	}
 }

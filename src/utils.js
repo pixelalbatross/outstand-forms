@@ -38,6 +38,36 @@ export function isFieldBlock(block) {
 }
 
 /**
+ * Get the field types registered on the server.
+ *
+ * `FieldFactory::get_registered_types()` is the only definition of which
+ * field types exist and what renders them; it reaches the editor as
+ * `osfSettings.fieldTypes`. There is deliberately no JS fallback list — see
+ * `isFieldBlock()` above for why.
+ *
+ * @return {Array<{type: string, label: string, control: string}>} Registered field types, or an empty array if none were localized.
+ */
+export function getFieldTypes() {
+	const fieldTypes = typeof osfSettings !== 'undefined' ? osfSettings?.fieldTypes : undefined;
+
+	return Array.isArray(fieldTypes) ? fieldTypes : [];
+}
+
+/**
+ * Resolve the editor control that renders a field type.
+ *
+ * A type absent from the registry — unregistered, or from a plugin that has
+ * since been deactivated — resolves to `undefined` so callers can degrade
+ * visibly instead of guessing at a control to render.
+ *
+ * @param {string} type Field type.
+ * @return {string|undefined} The control name (e.g. 'input', 'textarea'), or undefined if the type isn't registered.
+ */
+export function resolveFieldControl(type) {
+	return getFieldTypes().find((fieldType) => fieldType?.type === type)?.control;
+}
+
+/**
  * Resolve the submission name for a field block.
  *
  * Mirrors `AbstractField::get_field_name()` (PHP): an explicit `name`

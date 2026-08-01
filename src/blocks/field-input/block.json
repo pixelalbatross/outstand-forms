@@ -17,15 +17,7 @@
     },
     "type": {
       "type": "string",
-      "default": "text",
-      "enum": [
-        "text",
-        "email",
-        "number",
-        "password",
-        "tel",
-        "url"
-      ]
+      "default": "text"
     },
     "name": {
       "type": "string",

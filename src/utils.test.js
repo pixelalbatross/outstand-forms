@@ -2,7 +2,13 @@
 /**
  * Internal dependencies
  */
-import { getBlockId, findBlocks, resolveFieldName } from './utils';
+import {
+	getBlockId,
+	findBlocks,
+	getFieldTypes,
+	resolveFieldControl,
+	resolveFieldName,
+} from './utils';
 
 describe('getBlockId', () => {
 	it('returns an id of the requested length', () => {
@@ -53,6 +59,60 @@ describe('findBlocks', () => {
 
 	it('defaults to an empty block list', () => {
 		expect(findBlocks(() => true)).toEqual([]);
+	});
+});
+
+describe('getFieldTypes', () => {
+	afterEach(() => {
+		delete global.osfSettings;
+	});
+
+	it('returns an empty array when osfSettings is undefined', () => {
+		expect(getFieldTypes()).toEqual([]);
+	});
+
+	it('returns an empty array when fieldTypes is not an array', () => {
+		global.osfSettings = { fieldTypes: 'nope' };
+
+		expect(getFieldTypes()).toEqual([]);
+	});
+
+	it('returns the localized field types', () => {
+		global.osfSettings = {
+			fieldTypes: [{ type: 'text', label: 'Text', control: 'input' }],
+		};
+
+		expect(getFieldTypes()).toEqual([{ type: 'text', label: 'Text', control: 'input' }]);
+	});
+});
+
+describe('resolveFieldControl', () => {
+	afterEach(() => {
+		delete global.osfSettings;
+	});
+
+	it('returns undefined when the type is not registered', () => {
+		global.osfSettings = {
+			fieldTypes: [{ type: 'text', label: 'Text', control: 'input' }],
+		};
+
+		expect(resolveFieldControl('date')).toBeUndefined();
+	});
+
+	it('returns undefined when osfSettings is undefined', () => {
+		expect(resolveFieldControl('text')).toBeUndefined();
+	});
+
+	it('returns the control for a registered type', () => {
+		global.osfSettings = {
+			fieldTypes: [
+				{ type: 'text', label: 'Text', control: 'input' },
+				{ type: 'textarea', label: 'Textarea', control: 'textarea' },
+			],
+		};
+
+		expect(resolveFieldControl('text')).toBe('input');
+		expect(resolveFieldControl('textarea')).toBe('textarea');
 	});
 });
 
