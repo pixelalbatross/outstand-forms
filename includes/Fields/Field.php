@@ -18,6 +18,27 @@ use Outstand\WP\Forms\Components\Label;
 class Field implements FieldInterface {
 
 	/**
+	 * Valid label position values, in the order shown in the block editor.
+	 *
+	 * @var array
+	 */
+	public const LABEL_POSITIONS = [ 'top', 'left', 'right' ];
+
+	/**
+	 * Label positions that place the label beside the field instead of above or below it.
+	 *
+	 * @var array
+	 */
+	public const INLINE_LABEL_POSITIONS = [ 'left', 'right' ];
+
+	/**
+	 * Valid help text position values, in the order shown in the block editor.
+	 *
+	 * @var array
+	 */
+	public const HELP_TEXT_POSITIONS = [ 'bottom', 'top' ];
+
+	/**
 	 * Field type.
 	 *
 	 * @var string
@@ -183,7 +204,7 @@ class Field implements FieldInterface {
 
 		$label_position     = $this->attributes['labelPosition'] ?? 'top';
 		$help_text_position = $this->attributes['helpTextPosition'] ?? 'bottom';
-		$has_inline_label   = in_array( $label_position, [ 'left', 'right' ], true );
+		$has_inline_label   = in_array( $label_position, self::INLINE_LABEL_POSITIONS, true );
 
 		$label     = $this->get_component( 'label' )?->get_markup() ?? '';
 		$help_text = $this->get_component( 'help_text' )?->get_markup() ?? '';

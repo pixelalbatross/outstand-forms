@@ -15,7 +15,7 @@ use WP_REST_Request;
  * ({@see Forms::process_submission()}) and answers with a Post/Redirect/Get so
  * a refresh cannot resubmit.
  */
-class FormSubmission extends AbstractModule {
+class FormSubmission extends BaseModule {
 
 	/**
 	 * Hidden field marking a page POST as a form submission.

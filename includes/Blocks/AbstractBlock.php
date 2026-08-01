@@ -2,9 +2,9 @@
 
 namespace Outstand\WP\Forms\Blocks;
 
-use Outstand\WP\Forms\AbstractModule;
+use Outstand\WP\Forms\BaseModule;
 
-abstract class AbstractBlock extends AbstractModule {
+abstract class AbstractBlock extends BaseModule {
 
 	/**
 	 * The block name.

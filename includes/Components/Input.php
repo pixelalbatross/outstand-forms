@@ -7,6 +7,13 @@ use Outstand\WP\Forms\Fields\FieldInterface;
 class Input extends AbstractComponent {
 
 	/**
+	 * Input types that do not support the mask attribute.
+	 *
+	 * @var array
+	 */
+	public const UNMASKABLE_TYPES = [ 'number', 'email', 'url' ];
+
+	/**
 	 * Input type.
 	 *
 	 * @var string
@@ -50,7 +57,7 @@ class Input extends AbstractComponent {
 		$max           = $rules['max'] ?? null;
 
 		$is_number     = 'number' === $this->input_type;
-		$supports_mask = ! in_array( $this->input_type, [ 'number', 'email', 'url' ], true );
+		$supports_mask = ! in_array( $this->input_type, self::UNMASKABLE_TYPES, true );
 		$step          = $is_number ? ( $attributes['step'] ?? 1 ) : 0;
 		$mask          = $supports_mask ? ( $attributes['mask'] ?? '' ) : '';
 

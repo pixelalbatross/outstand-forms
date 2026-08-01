@@ -2,6 +2,7 @@
 
 namespace Outstand\WP\Forms\Tests\Unit;
 
+use Outstand\WP\Forms\Components\Input;
 use Outstand\WP\Forms\FieldFactory;
 
 class ComponentsTest extends \WP_UnitTestCase {
@@ -172,6 +173,28 @@ class ComponentsTest extends \WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'id="osf-field-42"', $markup );
 		$this->assertStringContainsString( 'name="custom_name"', $markup );
+	}
+
+	/**
+	 * `Input::UNMASKABLE_TYPES` is the registry's only definition of which
+	 * input types don't support masking; the block editor localizes it as
+	 * `osfSettings.unmaskableTypes` to decide, without re-declaring the list,
+	 * whether to show the Mask control.
+	 */
+	public function test_unmaskable_types_matches_registered_types_without_mask(): void {
+		$this->assertSame( [ 'number', 'email', 'url' ], Input::UNMASKABLE_TYPES );
+
+		foreach ( Input::UNMASKABLE_TYPES as $type ) {
+			$markup = $this->field_markup(
+				$type,
+				[
+					'fieldId' => 1,
+					'mask'    => '999',
+				]
+			);
+
+			$this->assertStringNotContainsString( 'data-inputmask', $markup );
+		}
 	}
 
 	/**

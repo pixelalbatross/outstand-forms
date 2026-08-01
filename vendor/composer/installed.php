@@ -3,7 +3,7 @@
         'name' => 'outstand/forms',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'f43a0b9a1a83ef48bbf40d78eb1e520620ae73c8',
+        'reference' => 'b900fcdffaf46c2c2448eed79fdeaebe3a790795',
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'outstand/forms' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'f43a0b9a1a83ef48bbf40d78eb1e520620ae73c8',
+            'reference' => 'b900fcdffaf46c2c2448eed79fdeaebe3a790795',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

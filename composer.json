@@ -10,11 +10,11 @@
   ],
   "autoload": {
     "psr-4": {
-      "Outstand\\WP\\Forms\\": "includes/classes"
+      "Outstand\\WP\\Forms\\": "includes/"
     }
   },
   "require": {
-    "php": ">=8.2",
+    "php": "^8.2",
     "composer-plugin-api": "^2.3",
     "yahnis-elsts/plugin-update-checker": "^5.5"
   },

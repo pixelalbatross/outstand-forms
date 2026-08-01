@@ -3,6 +3,8 @@
 namespace Outstand\WP\Forms;
 
 use Outstand\WP\Forms\Blocks\FieldTurnstile;
+use Outstand\WP\Forms\Components\Input;
+use Outstand\WP\Forms\Fields\Field;
 
 class Plugin {
 
@@ -41,6 +43,11 @@ class Plugin {
 		];
 
 		foreach ( $modules as $module ) {
+			$can_register = $module->can_register();
+			if ( ! $can_register ) {
+				continue;
+			}
+
 			$module->register();
 		}
 
@@ -88,13 +95,21 @@ class Plugin {
 			'osf-form-editor-script',
 			'osfSettings',
 			[
-				'spam'            => [
+				'spam'                 => [
 					'turnstile' => [
 						'isConfigured' => $is_configured,
 					],
 				],
-				'fieldBlockNames' => FormBlockParser::FIELD_BLOCK_NAMES,
-				'fieldTypes'      => FieldFactory::instance()->get_registered_types(),
+				'fieldBlockNames'      => FormBlockParser::FIELD_BLOCK_NAMES,
+				'fieldTypes'           => FieldFactory::instance()->get_registered_types(),
+				'unmaskableTypes'      => Input::UNMASKABLE_TYPES,
+				'labelPositions'       => Field::LABEL_POSITIONS,
+				'inlineLabelPositions' => Field::INLINE_LABEL_POSITIONS,
+				'helpTextPositions'    => Field::HELP_TEXT_POSITIONS,
+				'formActionIds'        => [
+					'adminNotification' => EmailNotification::ACTION_ADMIN_NOTIFICATION,
+					'userNotification'  => EmailNotification::ACTION_USER_NOTIFICATION,
+				],
 			]
 		);
 	}

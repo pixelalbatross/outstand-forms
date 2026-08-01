@@ -69,4 +69,20 @@ class ValidatorTest extends \WP_UnitTestCase {
 		$this->assertFalse( $failing['is_valid'] );
 		$this->assertSame( [ 'starts_with_a' ], $failing['errors'] );
 	}
+
+	/**
+	 * Rules with no server-side validator are skipped.
+	 *
+	 * This is deliberately not shared with src/validation.test.js: the server is
+	 * authoritative, so an unresolvable rule here is a no-op, while the client
+	 * fails such a rule closed rather than reporting a value the server would
+	 * reject as valid.
+	 */
+	public function test_unknown_rules_are_ignored(): void {
+		$validator = new Validator();
+		$result    = $validator->validate( 'anything', [ 'nonexistentRule' => true ] );
+
+		$this->assertTrue( $result['is_valid'] );
+		$this->assertSame( [], $result['errors'] );
+	}
 }

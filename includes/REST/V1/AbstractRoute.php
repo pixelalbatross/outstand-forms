@@ -2,9 +2,9 @@
 
 namespace Outstand\WP\Forms\REST\V1;
 
-use Outstand\WP\Forms\AbstractModule;
+use Outstand\WP\Forms\BaseModule;
 
-abstract class AbstractRoute extends AbstractModule {
+abstract class AbstractRoute extends BaseModule {
 
 	/**
 	 * Endpoint namespace.

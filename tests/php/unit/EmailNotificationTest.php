@@ -123,6 +123,18 @@ class EmailNotificationTest extends \WP_UnitTestCase {
 	}
 
 	/**
+	 * `EmailNotification::ACTION_ADMIN_NOTIFICATION` and
+	 * `ACTION_USER_NOTIFICATION` are the registry's only definitions of the
+	 * form action IDs; the block editor localizes them as
+	 * `osfSettings.formActionIds` to label and compare actions without
+	 * re-declaring the values.
+	 */
+	public function test_action_id_constants_match_the_ids_used_by_the_form_block(): void {
+		$this->assertSame( 'admin_notification', EmailNotification::ACTION_ADMIN_NOTIFICATION );
+		$this->assertSame( 'user_notification', EmailNotification::ACTION_USER_NOTIFICATION );
+	}
+
+	/**
 	 * A user_notification action must resolve the recipient from toFieldId.
 	 */
 	public function test_user_notification_resolves_to_field(): void {
@@ -130,7 +142,7 @@ class EmailNotificationTest extends \WP_UnitTestCase {
 			[
 				'actions' => [
 					[
-						'id'        => 'user_notification',
+						'id'        => EmailNotification::ACTION_USER_NOTIFICATION,
 						'enabled'   => true,
 						'toFieldId' => 1,
 					],

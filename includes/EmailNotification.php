@@ -2,7 +2,21 @@
 
 namespace Outstand\WP\Forms;
 
-class EmailNotification extends AbstractModule {
+class EmailNotification extends BaseModule {
+
+	/**
+	 * Action ID for the admin notification email.
+	 *
+	 * @var string
+	 */
+	public const ACTION_ADMIN_NOTIFICATION = 'admin_notification';
+
+	/**
+	 * Action ID for the user notification email.
+	 *
+	 * @var string
+	 */
+	public const ACTION_USER_NOTIFICATION = 'user_notification';
 
 	/**
 	 * {@inheritDoc}
@@ -173,7 +187,7 @@ class EmailNotification extends AbstractModule {
 	private function resolve_to_address( array $action, array $sanitized_data, array $field_configs, array $tags ): string {
 		$action_id = $action['id'] ?? '';
 
-		if ( 'user_notification' === $action_id ) {
+		if ( self::ACTION_USER_NOTIFICATION === $action_id ) {
 			return $this->resolve_user_email_to( $action, $sanitized_data, $field_configs );
 		}
 

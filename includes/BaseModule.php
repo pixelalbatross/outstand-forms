@@ -2,7 +2,7 @@
 
 namespace Outstand\WP\Forms;
 
-abstract class AbstractModule {
+abstract class BaseModule {
 
 	/**
 	 * Registers the module.
@@ -10,4 +10,13 @@ abstract class AbstractModule {
 	 * @return void
 	 */
 	abstract public function register(): void;
+
+	/**
+	 * Whether the module can be registered.
+	 *
+	 * @return bool
+	 */
+	public function can_register(): bool {
+		return true;
+	}
 }

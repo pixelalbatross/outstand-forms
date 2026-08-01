@@ -3,6 +3,7 @@
 namespace Outstand\WP\Forms\Tests\Unit;
 
 use Outstand\WP\Forms\FieldFactory;
+use Outstand\WP\Forms\Fields\Field;
 use Outstand\WP\Forms\Fields\FieldInterface;
 
 class FieldsTest extends \WP_UnitTestCase {
@@ -183,6 +184,21 @@ class FieldsTest extends \WP_UnitTestCase {
 		$this->assertSame( 'osf-label-42', $field->get_label_id() );
 		$this->assertSame( 'osf-help-text-42', $field->get_help_text_id() );
 		$this->assertSame( 'osf-error-42', $field->get_error_id() );
+	}
+
+	/**
+	 * The inline label positions must be a subset of the valid label positions.
+	 *
+	 * This is the list the block editor localizes as `osfSettings.inlineLabelPositions`
+	 * to decide, without re-declaring the values, when a field's label renders
+	 * beside it instead of above or below it.
+	 */
+	public function test_inline_label_positions_are_a_subset_of_label_positions(): void {
+		foreach ( Field::INLINE_LABEL_POSITIONS as $position ) {
+			$this->assertContains( $position, Field::LABEL_POSITIONS );
+		}
+
+		$this->assertSame( [ 'left', 'right' ], Field::INLINE_LABEL_POSITIONS );
 	}
 
 	/**

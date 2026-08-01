@@ -2,6 +2,7 @@
 
 namespace Outstand\WP\Forms\Tests\Unit;
 
+use Outstand\WP\Forms\BaseModule;
 use Outstand\WP\Forms\FieldFactory;
 use Outstand\WP\Forms\Plugin;
 
@@ -94,5 +95,70 @@ class PluginTest extends \WP_UnitTestCase {
 		remove_filter( 'outstand_forms_field_factory', $register );
 
 		$this->assertContains( 'slug', $filtered['attributes']['type']['enum'] );
+	}
+
+	/**
+	 * A module whose `can_register()` returns false must be skipped, while a
+	 * module that inherits the default `can_register()` must be registered.
+	 */
+	public function test_can_register_gate_skips_modules_that_opt_out(): void {
+		$enabled_module = new class() extends BaseModule {
+			/**
+			 * Whether the module was registered.
+			 *
+			 * @var bool
+			 */
+			public bool $registered = false;
+
+			/**
+			 * Registers the module.
+			 *
+			 * @return void
+			 */
+			public function register(): void {
+				$this->registered = true;
+			}
+		};
+
+		$disabled_module = new class() extends BaseModule {
+			/**
+			 * Whether the module was registered.
+			 *
+			 * @var bool
+			 */
+			public bool $registered = false;
+
+			/**
+			 * Registers the module.
+			 *
+			 * @return void
+			 */
+			public function register(): void {
+				$this->registered = true;
+			}
+
+			/**
+			 * Whether the module can be registered.
+			 *
+			 * @return bool
+			 */
+			public function can_register(): bool {
+				return false;
+			}
+		};
+
+		$modules = [ $enabled_module, $disabled_module ];
+
+		foreach ( $modules as $module ) {
+			$can_register = $module->can_register();
+			if ( ! $can_register ) {
+				continue;
+			}
+
+			$module->register();
+		}
+
+		$this->assertTrue( $enabled_module->registered );
+		$this->assertFalse( $disabled_module->registered );
 	}
 }

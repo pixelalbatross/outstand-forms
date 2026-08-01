@@ -2,7 +2,7 @@
 
 namespace Outstand\WP\Forms;
 
-class Settings {
+class Settings extends BaseModule {
 
 	/**
 	 * Settings option key.
