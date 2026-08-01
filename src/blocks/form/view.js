@@ -25,6 +25,49 @@ function setSubmissionError(context, submissionMessages) {
 	context.submissionMessage = submissionMessages.error || '';
 }
 
+/**
+ * Determine whether a value can be interpolated into a message directly.
+ *
+ * Excludes objects/arrays, which would otherwise stringify as
+ * `[object Object]` (or a comma-joined dump) in user-facing text.
+ *
+ * @param {*} value The value to check.
+ * @return {boolean} True if the value is safe to interpolate as-is.
+ */
+function isScalar(value) {
+	return value !== null && typeof value !== 'object' && typeof value !== 'function';
+}
+
+/**
+ * Substitute `{{key}}` placeholders in a validation message.
+ *
+ * A rule's config in `validationRules` is usually a single scalar (e.g.
+ * `minLength: 3`), and a message has a single placeholder referring to that
+ * value regardless of its literal name -- the `minLength` message reads
+ * "at least {{min}} characters", not `{{minLength}}`. In that case every
+ * placeholder is replaced with the scalar itself. If a rule's config is
+ * instead an object (e.g. a hypothetical multi-parameter rule), placeholders
+ * are resolved by matching key instead.
+ *
+ * A placeholder that can't be resolved this way (missing key, non-scalar
+ * value, or no config at all) is replaced with an empty string so it never
+ * leaks the literal `{{...}}` to the end user.
+ *
+ * @param {string} message    The raw message, possibly containing `{{key}}` placeholders.
+ * @param {*}      ruleConfig The failed rule's own value from `validationRules`.
+ * @return {string} The message with placeholders substituted.
+ */
+function substitutePlaceholders(message, ruleConfig) {
+	return message.replace(/{{\s*([\w-]+)\s*}}/g, (match, key) => {
+		if (ruleConfig !== null && typeof ruleConfig === 'object') {
+			const value = ruleConfig[key];
+			return isScalar(value) ? String(value) : '';
+		}
+
+		return isScalar(ruleConfig) ? String(ruleConfig) : '';
+	});
+}
+
 const { state, actions } = store('osf/form', {
 	state: {
 		/**
@@ -59,31 +102,14 @@ const { state, actions } = store('osf/form', {
 
 			const { validationMessages = {} } = getContext('osf/form');
 			const error = validationErrors[0];
+			const message = validationMessages?.[error];
 
 			// Skip if the error is not in the validation messages.
-			if (validationMessages?.[error] === undefined) {
+			if (message === undefined) {
 				return '';
 			}
 
-			let message = validationMessages[error];
-			switch (error) {
-				case 'minLength':
-					message = message.replace('{{min}}', validationRules.minLength);
-					break;
-				case 'maxLength':
-					message = message.replace('{{max}}', validationRules.maxLength);
-					break;
-				case 'min':
-					message = message.replace('{{min}}', validationRules.min);
-					break;
-				case 'max':
-					message = message.replace('{{max}}', validationRules.max);
-					break;
-				default:
-					break;
-			}
-
-			return message;
+			return substitutePlaceholders(message, validationRules?.[error]);
 		},
 		/**
 		 * Determine if the form is valid.
