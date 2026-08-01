@@ -1,0 +1,53 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "osf/field-turnstile",
+  "version": "1.0.0",
+  "title": "Turnstile",
+  "category": "osf",
+  "description": "Cloudflare Turnstile spam protection",
+  "textdomain": "outstand-forms",
+  "ancestor": [
+    "osf/form-submit"
+  ],
+  "attributes": {
+    "theme": {
+      "type": "string",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "light",
+        "dark"
+      ]
+    },
+    "size": {
+      "type": "string",
+      "default": "normal",
+      "enum": [
+        "normal",
+        "compact"
+      ]
+    }
+  },
+  "usesContext": [
+    "osf/formId"
+  ],
+  "supports": {
+    "html": false,
+    "multiple": false,
+    "reusable": false,
+    "align": [
+      "wide",
+      "full"
+    ],
+    "spacing": {
+      "margin": true,
+      "padding": true
+    },
+    "interactivity": true
+  },
+  "editorStyle": "file:./index.css",
+  "editorScript": "file:./index.js",
+  "viewScriptModule": "file:./view.js",
+  "render": "file:./render.php"
+}

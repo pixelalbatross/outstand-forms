@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "osf/form-fields",
+  "version": "1.0.0",
+  "title": "Form Fields",
+  "category": "osf",
+  "icon": "",
+  "description": "",
+  "keywords": [],
+  "textdomain": "outstand-forms",
+  "ancestor": [
+    "osf/form"
+  ],
+  "attributes": {},
+  "usesContext": [
+    "osf/formId"
+  ],
+  "supports": {
+    "html": false,
+    "lock": false,
+    "inserter": false,
+    "reusable": false,
+    "spacing": {
+      "margin": true,
+      "padding": true
+    },
+    "interactivity": true
+  },
+  "editorScript": "file:./index.js",
+  "style": "file:./style-index.css",
+  "render": "file:./render.php"
+}

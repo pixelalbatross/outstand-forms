@@ -1,0 +1,107 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "osf/field-input",
+  "version": "1.0.0",
+  "title": "Input",
+  "category": "osf",
+  "icon": "",
+  "description": "",
+  "textdomain": "outstand-forms",
+  "ancestor": [
+    "osf/form-fields"
+  ],
+  "attributes": {
+    "fieldId": {
+      "type": "integer"
+    },
+    "type": {
+      "type": "string",
+      "default": "text"
+    },
+    "name": {
+      "type": "string",
+      "default": ""
+    },
+    "defaultValue": {
+      "type": "string",
+      "default": ""
+    },
+    "required": {
+      "type": "boolean",
+      "default": false
+    },
+    "placeholder": {
+      "type": "string",
+      "default": ""
+    },
+    "autocomplete": {
+      "type": "string",
+      "default": ""
+    },
+    "minLength": {
+      "type": "number",
+      "default": 0
+    },
+    "maxLength": {
+      "type": "number",
+      "default": 0
+    },
+    "step": {
+      "type": "number",
+      "default": 1
+    },
+    "min": {
+      "type": "number",
+      "default": 0
+    },
+    "max": {
+      "type": "number",
+      "default": 0
+    },
+    "pattern": {
+      "type": "string",
+      "default": ""
+    },
+    "mask": {
+      "type": "string",
+      "default": ""
+    },
+    "ariaLabel": {
+      "type": "string",
+      "default": ""
+    },
+    "label": {
+      "type": "string",
+      "default": ""
+    },
+    "labelPosition": {
+      "type": "string"
+    },
+    "helpText": {
+      "type": "string",
+      "default": ""
+    },
+    "helpTextPosition": {
+      "type": "string"
+    }
+  },
+  "usesContext": [
+    "osf/formId",
+    "osf/labelPosition",
+    "osf/helpTextPosition",
+    "osf/requiredIndicator"
+  ],
+  "supports": {
+    "html": false,
+    "anchor": true,
+    "reusable": false,
+    "spacing": {
+      "padding": true,
+      "margin": true
+    },
+    "interactivity": true
+  },
+  "editorScript": "file:./index.js",
+  "render": "file:./render.php"
+}

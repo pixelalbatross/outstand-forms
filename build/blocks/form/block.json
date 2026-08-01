@@ -1,0 +1,109 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "osf/form",
+  "version": "1.0.0",
+  "title": "Outstand Forms",
+  "category": "common",
+  "icon": "",
+  "description": "",
+  "keywords": [
+    "outstand",
+    "form",
+    "feedback",
+    "contact"
+  ],
+  "textdomain": "outstand-forms",
+  "attributes": {
+    "formId": {
+      "type": "string"
+    },
+    "formTitle": {
+      "type": "string",
+      "default": ""
+    },
+    "formAction": {
+      "type": "string"
+    },
+    "nextFieldId": {
+      "type": "integer",
+      "default": 1
+    },
+    "requiredIndicator": {
+      "type": "string",
+      "default": "*"
+    },
+    "labelPosition": {
+      "type": "string",
+      "default": "top"
+    },
+    "helpTextPosition": {
+      "type": "string",
+      "default": "bottom"
+    },
+    "actions": {
+      "type": "array",
+      "default": [
+        {
+          "id": "admin_notification",
+          "enabled": true,
+          "to": "{admin_email}",
+          "from": {
+            "email": "{admin_email}",
+            "name": ""
+          },
+          "replyTo": "",
+          "bcc": "",
+          "subject": "New submission from {form_title}",
+          "message": "{all_fields}"
+        },
+        {
+          "id": "user_notification",
+          "enabled": false,
+          "toFieldId": "",
+          "from": {
+            "email": "{admin_email}",
+            "name": ""
+          },
+          "replyTo": "",
+          "bcc": "",
+          "subject": "We have received your inquiry",
+          "message": "{all_fields}"
+        }
+      ]
+    }
+  },
+  "providesContext": {
+    "osf/formId": "formId",
+    "osf/labelPosition": "labelPosition",
+    "osf/helpTextPosition": "helpTextPosition",
+    "osf/requiredIndicator": "requiredIndicator"
+  },
+  "allowedBlocks": [
+    "osf/form-errors",
+    "osf/form-fields",
+    "osf/form-submit",
+    "osf/form-message"
+  ],
+  "supports": {
+    "html": false,
+    "anchor": true,
+    "align": [
+      "wide",
+      "full"
+    ],
+    "spacing": {
+      "margin": true,
+      "padding": true
+    },
+    "typography": {
+      "lineHeight": true
+    },
+    "interactivity": true
+  },
+  "editorStyle": "file:./index.css",
+  "editorScript": "file:./index.js",
+  "viewScriptModule": "file:./view.js",
+  "style": "file:./style-index.css",
+  "render": "file:./render.php"
+}

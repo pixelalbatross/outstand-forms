@@ -1,7 +1,7 @@
 #---------------------------
 # Project
 #---------------------------
-build/
+build/**/*.map
 node_modules/
 .node_history
 package-lock.json
