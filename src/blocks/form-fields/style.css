@@ -1,4 +1,5 @@
 .wp-block-osf-form-fields {
+
 	&[hidden] {
 		display: none;
 	}

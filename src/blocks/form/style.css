@@ -3,9 +3,9 @@
 	box-sizing: border-box;
 	width: 100%;
 
-	& *,
-	& *::before,
-	& *::after {
+	*,
+	*::before,
+	*::after {
 		box-sizing: inherit;
 	}
 }
@@ -44,6 +44,7 @@
 }
 
 @keyframes osf-spin {
+
 	to {
 		transform: rotate(360deg);
 	}

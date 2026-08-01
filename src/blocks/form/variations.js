@@ -6,6 +6,7 @@ import { __ } from '@wordpress/i18n';
 /**
  * Internal dependencies
  */
+import { TEMPLATE } from './constants';
 import { blank, contactUs } from './icon';
 
 const variations = [
@@ -13,27 +14,8 @@ const variations = [
 		name: 'blank',
 		title: __('Blank', 'outstand-forms'),
 		isDefault: true,
-		attributes: {
-			nextFieldId: 2,
-		},
 		icon: blank,
-		innerBlocks: [
-			['osf/form-errors', {}],
-			[
-				'osf/form-fields',
-				{},
-				[
-					[
-						'osf/field-input',
-						{
-							fieldId: 1,
-						},
-					],
-				],
-			],
-			['osf/form-submit', {}],
-			['osf/form-message', {}],
-		],
+		innerBlocks: TEMPLATE,
 		scope: ['block'],
 	},
 	{
