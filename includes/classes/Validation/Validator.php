@@ -240,9 +240,15 @@ class Validator {
 		// Use ASCII SOH delimiter to avoid conflicts with patterns containing '/'.
 		$delimiter = chr( 1 );
 
+		// The `u` modifier makes matching unicode-aware, mirroring the
+		// UTF-16-aware RegExp behavior in src/validation.js. With `u`,
+		// preg_match() returns false (not 0) when the pattern or subject is
+		// not valid UTF-8; that must fail closed as invalid, not as a match.
 		// Suppress warnings from invalid regex.
 		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-		return (bool) @preg_match( $delimiter . '^(?:' . $config . ')$' . $delimiter, (string) $value );
+		$result = @preg_match( $delimiter . '^(?:' . $config . ')$' . $delimiter . 'u', (string) $value );
+
+		return 1 === $result;
 	}
 
 	/**

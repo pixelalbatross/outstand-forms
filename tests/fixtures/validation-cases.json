@@ -544,5 +544,82 @@
 		"rules": { "url": true },
 		"is_valid": true,
 		"errors": []
+	},
+	{
+		"description": "pattern with alternation: left branch matches the full value",
+		"value": "cat",
+		"rules": { "pattern": "cat|dog" },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "pattern with alternation: right branch matches the full value",
+		"value": "dog",
+		"rules": { "pattern": "cat|dog" },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "pattern with alternation: value matching neither branch fails",
+		"value": "bird",
+		"rules": { "pattern": "cat|dog" },
+		"is_valid": false,
+		"errors": [ "pattern" ]
+	},
+	{
+		"description": "pattern with alternation: value that only partially matches a branch fails (implicit full-value anchoring)",
+		"value": "catfish",
+		"rules": { "pattern": "cat|dog" },
+		"is_valid": false,
+		"errors": [ "pattern" ]
+	},
+	{
+		"description": "pattern already written with explicit anchors still matches the full value once implicitly wrapped",
+		"value": "abc",
+		"rules": { "pattern": "^abc$" },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "pattern already written with explicit anchors rejects a non-matching value",
+		"value": "abcd",
+		"rules": { "pattern": "^abc$" },
+		"is_valid": false,
+		"errors": [ "pattern" ]
+	},
+	{
+		"description": "pattern with a bounded quantifier passes at the upper boundary",
+		"value": "aaa",
+		"rules": { "pattern": "a{1,3}" },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "pattern with a bounded quantifier fails past the upper boundary",
+		"value": "aaaa",
+		"rules": { "pattern": "a{1,3}" },
+		"is_valid": false,
+		"errors": [ "pattern" ]
+	},
+	{
+		"description": "pattern with a unicode letter-range class matches a multi-byte accented character, now that the PHP pattern validator runs with the /u modifier",
+		"value": "é",
+		"rules": { "pattern": "[à-ÿ]" },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "pattern with a unicode literal alternation matches an emoji value",
+		"value": "😀",
+		"rules": { "pattern": "😀|😁" },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "pattern that is an unclosed/malformed regex fails closed as invalid on both sides",
+		"value": "anything",
+		"rules": { "pattern": "[" },
+		"is_valid": false,
+		"errors": [ "pattern" ]
 	}
 ]
