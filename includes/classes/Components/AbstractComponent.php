@@ -89,19 +89,21 @@ abstract class AbstractComponent implements ComponentInterface {
 	/**
 	 * Get the Interactivity API directives shared by all field controls.
 	 *
+	 * Field state is owned by the form, not the field: these bindings read
+	 * derived state that resolves the field's record out of the form's
+	 * `formFields` registry, keyed by the `fieldName` in field-local context.
+	 *
 	 * @return array
 	 */
 	protected function get_interactivity_directives(): array {
 		return [
-			'data-wp-bind--value'                => 'context.value',
-			'data-wp-bind--aria-invalid'         => '!context.isValid',
-			'data-wp-bind--aria-describedby'     => 'state.fieldAriaDescribedByAttribute',
-			'data-wp-on--focus'                  => 'actions.handleFieldFocus',
-			'data-wp-on--blur'                   => 'actions.handleFieldBlur',
-			'data-wp-on--change'                 => 'actions.handleFieldChange',
-			'data-wp-init--register'             => 'callbacks.registerField',
-			'data-wp-on--osf-field-validate'     => 'actions.handleFieldValidate',
-			'data-wp-on--osf-field-server-error' => 'actions.handleFieldServerErrors',
+			'data-wp-bind--value'            => 'state.fieldValue',
+			'data-wp-bind--aria-invalid'     => '!state.isFieldValid',
+			'data-wp-bind--aria-describedby' => 'state.fieldAriaDescribedByAttribute',
+			'data-wp-on--focus'              => 'actions.handleFieldFocus',
+			'data-wp-on--blur'               => 'actions.handleFieldBlur',
+			'data-wp-on--change'             => 'actions.handleFieldChange',
+			'data-wp-init--register'         => 'callbacks.registerField',
 		];
 	}
 

@@ -72,15 +72,48 @@ class ComponentsTest extends \WP_UnitTestCase {
 	}
 
 	/**
-	 * Interactivity directives must bind field state and server errors.
+	 * Interactivity directives must bind to the form-owned field state and
+	 * register the field with the form on init.
 	 */
 	public function test_input_markup_carries_interactivity_directives(): void {
 		$markup = $this->field_markup( 'text', [ 'fieldId' => 1 ] );
 
-		$this->assertStringContainsString( 'data-wp-bind--aria-invalid="!context.isValid"', $markup );
-		$this->assertStringContainsString( 'data-wp-on--osf-field-validate="actions.handleFieldValidate"', $markup );
-		$this->assertStringContainsString( 'data-wp-on--osf-field-server-error="actions.handleFieldServerErrors"', $markup );
+		$this->assertStringContainsString( 'data-wp-bind--value="state.fieldValue"', $markup );
+		$this->assertStringContainsString( 'data-wp-bind--aria-invalid="!state.isFieldValid"', $markup );
+		$this->assertStringContainsString(
+			'data-wp-bind--aria-describedby="state.fieldAriaDescribedByAttribute"',
+			$markup
+		);
+		$this->assertStringContainsString( 'data-wp-on--focus="actions.handleFieldFocus"', $markup );
+		$this->assertStringContainsString( 'data-wp-on--blur="actions.handleFieldBlur"', $markup );
+		$this->assertStringContainsString( 'data-wp-on--change="actions.handleFieldChange"', $markup );
 		$this->assertStringContainsString( 'data-wp-init--register="callbacks.registerField"', $markup );
+	}
+
+	/**
+	 * Validation is a synchronous loop over the form-owned registry, so no
+	 * field control may carry a directive for the retired event bridge.
+	 */
+	public function test_input_markup_has_no_custom_event_directives(): void {
+		$markup = $this->field_markup( 'text', [ 'fieldId' => 1 ] );
+
+		$this->assertStringNotContainsString( 'osf-field-validate', $markup );
+		$this->assertStringNotContainsString( 'osf-field-validated', $markup );
+		$this->assertStringNotContainsString( 'osf-field-server-error', $markup );
+		$this->assertStringNotContainsString( 'osf-form-validated', $markup );
+	}
+
+	/**
+	 * The error region visibility must follow the form-owned field validity.
+	 */
+	public function test_error_component_binds_to_form_owned_validity(): void {
+		$factory = new FieldFactory();
+		$field   = $factory->create( 'text', [ 'fieldId' => 1 ] );
+		$markup  = $field->get_component( 'error' )->get_markup();
+
+		$this->assertStringContainsString( 'data-wp-text="state.fieldErrorMessage"', $markup );
+		$this->assertStringContainsString( 'data-wp-bind--aria-hidden="state.isFieldValid"', $markup );
+		$this->assertStringNotContainsString( 'context.isValid', $markup );
 	}
 
 	/**
@@ -99,7 +132,8 @@ class ComponentsTest extends \WP_UnitTestCase {
 		$this->assertStringContainsString( '<textarea', $markup );
 		$this->assertStringContainsString( 'required', $markup );
 		$this->assertStringContainsString( 'maxlength="200"', $markup );
-		$this->assertStringContainsString( 'data-wp-on--osf-field-server-error="actions.handleFieldServerErrors"', $markup );
+		$this->assertStringContainsString( 'data-wp-bind--aria-invalid="!state.isFieldValid"', $markup );
+		$this->assertStringContainsString( 'data-wp-init--register="callbacks.registerField"', $markup );
 	}
 
 	/**

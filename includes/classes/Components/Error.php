@@ -13,7 +13,7 @@ class Error extends AbstractComponent {
 				id="%1$s"
 				class="osf-field__error"
 				data-wp-text="state.fieldErrorMessage"
-				data-wp-bind--aria-hidden="context.isValid"
+				data-wp-bind--aria-hidden="state.isFieldValid"
 			></div>',
 			esc_attr( $this->get_field_error_id() )
 		);

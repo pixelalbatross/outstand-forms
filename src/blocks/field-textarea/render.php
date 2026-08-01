@@ -49,21 +49,24 @@ $wrapper_classes = array_map( 'sanitize_html_class', $wrapper_classes );
 $wrapper_attributes = get_block_wrapper_attributes(
 	[
 		'class'                     => implode( ' ', $wrapper_classes ),
-		'data-wp-class--is-focused' => 'context.isFocused',
-		'data-wp-class--is-invalid' => '!context.isValid',
+		'data-wp-class--is-focused' => 'state.isFieldFocused',
+		'data-wp-class--is-invalid' => '!state.isFieldValid',
 	]
 );
 
+// Field-local context carries identity only. `initialRecord` is a one-way
+// seed consumed by `callbacks.registerField`, which moves it into the form's
+// `formFields` registry; the form owns every mutable field value from then on.
 $context = wp_interactivity_data_wp_context(
 	[
-		'value'           => $default_value,
-		'isValid'         => true,
-		'isFocused'       => false,
-		'fieldId'         => $field->get_field_id(),
-		'fieldName'       => $field->get_field_name(),
-		'helpTextId'      => $field->get_help_text_id(),
-		'errorId'         => $field->get_error_id(),
-		'validationRules' => $field->get_validation_rules(),
+		'fieldId'       => $field->get_field_id(),
+		'fieldName'     => $field->get_field_name(),
+		'helpTextId'    => $field->get_help_text_id(),
+		'errorId'       => $field->get_error_id(),
+		'initialRecord' => [
+			'value'           => $default_value,
+			'validationRules' => $field->get_validation_rules(),
+		],
 	]
 );
 

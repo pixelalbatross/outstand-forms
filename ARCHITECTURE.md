@@ -239,16 +239,15 @@ Field render.php:
 ├── FieldFactory::instance()->create(type, attributes)
 ├── field->get_validation_rules()  →  { required: true, email: 'email', minLength: 5, ... }
 ├── wp_interactivity_data_wp_context({
-│       type, value, isValid, isFocused,
 │       fieldId, fieldName, helpTextId, errorId,
-│       validationRules
+│       initialRecord: { value, validationRules }
 │   })
 └── field->render()  →  Components output HTML with data-wp-* directives
 ```
 
 Key data boundaries:
 
-- `wp_interactivity_data_wp_context()` — per-instance state on both the form (submission state, validation/submission messages) and each field (value, validity, rules); this is where submission and validation state live, not `wp_interactivity_config()`
+- `wp_interactivity_data_wp_context()` — per-instance state; this is where submission and validation state live, not `wp_interactivity_config()`. The form context owns all mutable field state in its `formFields` registry; field-local context carries identity only (plus `initialRecord`, a one-way seed consumed by `callbacks.registerField`)
 - `data-wp-*` directives on HTML elements — bind reactive state to DOM
 
 ## Frontend Interactivity Store
@@ -261,36 +260,45 @@ The `osf/form` store (`src/blocks/form/view.js`) is organized into three section
 |--------|---------|
 | `fieldAriaDescribedByAttribute` | Returns `aria-describedby` value: error ID when invalid, help text ID otherwise |
 | `fieldErrorMessage` | Looks up message from the form's `validationMessages` context, interpolates `{{min}}`/`{{max}}` placeholders |
+| `fieldValue` | Current value from the field's registry record, falling back to the server-rendered `initialRecord.value` |
+| `isFieldFocused` | Focus flag from the field's registry record |
+| `isFieldValid` | Validity flag from the field's registry record (`true` while unregistered) |
 | `isFormValid` | Returns `true` only when all registered fields pass validation |
+
+Every field-scoped getter reads `fieldName` from field-local context, then resolves its record out of the form's `formFields` registry.
 
 ### Actions (Event Handlers)
 
 | Action | Trigger | Effect |
 |--------|---------|--------|
-| `handleFieldFocus` | `focus` event | Sets `context.isFocused = true` |
-| `handleFieldBlur` | `blur` event | Sets `context.isFocused = false` |
-| `handleFieldChange` | `change` event | Updates `context.value` from element |
-| `handleFieldValidate` | `osf-field-validate` custom event | Runs `validate()`, updates context, dispatches `osf-field-validated` |
-| `handleFieldServerErrors` | `osf-field-server-error` custom event | Absorbs server-side validation errors returned by the REST endpoint into the field's context |
+| `handleFieldFocus` | `focus` event | Sets `isFocused = true` on the field's registry record |
+| `handleFieldBlur` | `blur` event | Sets `isFocused = false` on the field's registry record |
+| `handleFieldChange` | `change` event | Updates `value` on the field's registry record from the element |
 | `handleFormSubmit` | form `submit` event | Prevents default, guards against double-submit, runs `validateForm()`, then `submitForm()` if valid |
-| `validateForm` | Called by `handleFormSubmit` | Dispatches `osf-field-validate` to all fields, awaits `Promise.all` |
-| `submitForm` | Called by `handleFormSubmit` when the form is valid | POSTs `FormData` to the form's `action` URL, updates submission state, dispatches `osf-field-server-error` to fields on a 400 response |
+| `validateForm` | Called by `handleFormSubmit` | Synchronous loop over `formFields`: runs `validate()` per record and writes `isValid`/`errors` back |
+| `submitForm` | Called by `handleFormSubmit` when the form is valid | POSTs `FormData` to the form's `action` URL, updates submission state, writes 400-response errors straight into the matching registry records |
 
 ### Callbacks (Init Hooks)
 
 | Callback | Directive | Purpose |
 |----------|-----------|---------|
-| `registerField` | `data-wp-init--register` | Registers field in form context on mount |
+| `registerField` | `data-wp-init--register` | Seeds the field's record in the form's `formFields` registry on mount |
 | `initMask` | `data-wp-init--mask` | Lazy-loads Inputmask library, applies mask |
 
-### Custom Event System
+### Parent-Owned Field State
 
-Fields and forms coordinate via custom DOM events:
+The form owns all mutable field state. `formFields` is a registry keyed by field name:
 
-1. Form dispatches `osf-field-validate` to each field element
-2. Field handles validation, dispatches `osf-field-validated` back
-3. Form collects results via `Promise.all`, checks `isFormValid`, then dispatches `osf-form-validated` to itself
-4. On submission failure, `submitForm` dispatches `osf-field-server-error` to each field named in the REST error response
+```
+formFields: { [fieldName]: { value, isValid, isFocused, errors, validationRules } }
+```
+
+1. Each field self-registers on init (`data-wp-init--register`), seeding its record from `initialRecord`
+2. Field-bound actions (`focus`/`blur`/`change`) write into their own record
+3. `handleFormSubmit` calls `validateForm()`, a synchronous loop over the registry, then reads `isFormValid` and submits
+4. A 400 response writes failed rule names into the matching records; the next `validateForm()` pass clears them
+
+There are no custom DOM events and no per-field timeouts: an unregistered field is simply absent from the registry and cannot stall a submission.
 
 ## Validation Architecture
 
@@ -301,15 +309,18 @@ AbstractField::get_validation_rules()
     ↓
 [required: true, email: 'email', ...]
     ↓
-Serialized into data-wp-context          validate(value, rules) — src/validation.js
-    ↓                                        ↓
-Frontend receives context        ──→     For each rule:
+Serialized into data-wp-context          registerField() copies them into
+    ↓                                    formFields[fieldName].validationRules
+Frontend receives context        ──→         ↓
+                                         validateForm() → validate(value, rules)
+                                            ↓
+                                         For each rule:
                                             Look up validator by name
                                             validator(value, ruleConfig)
                                             ↓
                                          { isValid: bool, errors: [...] }
                                             ↓
-                                         Update context.isValid, context.validationErrors
+                                         Written to the field's registry record
                                             ↓
                                          Reactive state updates DOM (error messages, ARIA)
 ```

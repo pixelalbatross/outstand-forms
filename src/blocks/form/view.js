@@ -1,18 +1,12 @@
 /**
  * WordPress dependencies
  */
-import { store, getContext, getElement, withSyncEvent, withScope } from '@wordpress/interactivity';
+import { store, getContext, getElement, withSyncEvent } from '@wordpress/interactivity';
 
 /**
  * Internal dependencies
  */
 import { validate } from './../../validation';
-
-/**
- * Maximum time, in milliseconds, to wait for a single field to respond to
- * an `osf-field-validate` event before treating it as invalid.
- */
-const FIELD_VALIDATION_TIMEOUT = 5000;
 
 /**
  * Flag the form as failed and surface the generic error message.
@@ -23,6 +17,57 @@ const FIELD_VALIDATION_TIMEOUT = 5000;
 function setSubmissionError(context, submissionMessages) {
 	context.hasSubmissionError = true;
 	context.submissionMessage = submissionMessages.error || '';
+}
+
+/**
+ * Absorb the errors returned by the REST endpoint into the registry.
+ *
+ * The registry is the single source of validity, so a server-side rejection is
+ * written exactly the way a client-side one is and clears on the next
+ * validateForm() pass.
+ *
+ * Takes the form context as an argument rather than resolving it itself: this
+ * runs after an `await`, where the Interactivity API scope of the originating
+ * directive is no longer on the stack and `getContext()` would resolve nothing.
+ *
+ * @param {Object} context      The form context.
+ * @param {Object} serverErrors Failed rule names keyed by field name.
+ */
+function applyServerErrors(context, serverErrors) {
+	const { formFields = {} } = context;
+
+	Object.entries(serverErrors).forEach(([fieldName, errors]) => {
+		const record = formFields[fieldName];
+
+		if (!record) {
+			return;
+		}
+
+		record.isValid = false;
+		record.errors = Array.isArray(errors) ? errors : [errors];
+	});
+}
+
+/**
+ * Resolve the form-owned record for the field in the current scope.
+ *
+ * Field state lives in the form context under `formFields`, keyed by field
+ * name; a field element's own context carries only its identity. Directives
+ * resolve `getContext()` against the element they are attached to, so a
+ * field-scoped directive reads its `fieldName` locally and looks the record up
+ * in the shared registry.
+ *
+ * The record does not exist until `callbacks.registerField` has run, and a
+ * field whose view script never initializes never gets one. Every caller must
+ * therefore tolerate `undefined` and fall back to the server-rendered state.
+ *
+ * @return {Object|undefined} The field record, or undefined when unregistered.
+ */
+function getFieldRecord() {
+	const { fieldName } = getContext();
+	const { formFields } = getContext('osf/form');
+
+	return formFields?.[fieldName];
 }
 
 /**
@@ -76,7 +121,7 @@ const { state, actions } = store('osf/form', {
 		 * @return {string|undefined} The aria-describedby attribute.
 		 */
 		get fieldAriaDescribedByAttribute() {
-			const { isValid, helpTextId, errorId } = getContext();
+			const { helpTextId, errorId } = getContext();
 
 			if (!helpTextId && !errorId) {
 				return undefined;
@@ -86,7 +131,7 @@ const { state, actions } = store('osf/form', {
 				return helpTextId;
 			}
 
-			return isValid ? helpTextId : `${errorId} ${helpTextId}`;
+			return state.isFieldValid ? helpTextId : `${errorId} ${helpTextId}`;
 		},
 		/**
 		 * Get the error message for the field.
@@ -94,14 +139,14 @@ const { state, actions } = store('osf/form', {
 		 * @return {string} The error message.
 		 */
 		get fieldErrorMessage() {
-			const { isValid, validationErrors, validationRules } = getContext();
+			const record = getFieldRecord();
 
-			if (isValid || !validationErrors?.length) {
+			if (!record || record.isValid || !record.errors?.length) {
 				return '';
 			}
 
 			const { validationMessages = {} } = getContext('osf/form');
-			const error = validationErrors[0];
+			const error = record.errors[0];
 			const message = validationMessages?.[error];
 
 			// Skip if the error is not in the validation messages.
@@ -109,7 +154,42 @@ const { state, actions } = store('osf/form', {
 				return '';
 			}
 
-			return substitutePlaceholders(message, validationRules?.[error]);
+			return substitutePlaceholders(message, record.validationRules?.[error]);
+		},
+		/**
+		 * Get the current value of the field.
+		 *
+		 * @return {string} The field value.
+		 */
+		get fieldValue() {
+			const record = getFieldRecord();
+
+			if (record) {
+				return record.value;
+			}
+
+			const { initialRecord } = getContext();
+			return initialRecord?.value ?? '';
+		},
+		/**
+		 * Determine if the field is focused.
+		 *
+		 * @return {boolean} True if the field is focused, false otherwise.
+		 */
+		get isFieldFocused() {
+			const record = getFieldRecord();
+
+			return record ? record.isFocused : false;
+		},
+		/**
+		 * Determine if the field is valid.
+		 *
+		 * @return {boolean} True if the field is valid, false otherwise.
+		 */
+		get isFieldValid() {
+			const record = getFieldRecord();
+
+			return record ? record.isValid : true;
 		},
 		/**
 		 * Determine if the form is valid.
@@ -120,9 +200,9 @@ const { state, actions } = store('osf/form', {
 			const { formFields } = getContext('osf/form');
 
 			// An empty registry (no fields, or none registered yet) is
-			// vacuously valid: Object.values( {} ).every( Boolean ) is
-			// already true, so no explicit length check is needed.
-			return Object.values(formFields || {}).every(Boolean);
+			// vacuously valid: Object.values( {} ).every( ... ) is already
+			// true, so no explicit length check is needed.
+			return Object.values(formFields || {}).every((record) => Boolean(record?.isValid));
 		},
 	},
 	actions: {
@@ -130,67 +210,38 @@ const { state, actions } = store('osf/form', {
 		 * Handle the field focus event.
 		 */
 		handleFieldFocus() {
-			const context = getContext();
-			context.isFocused = true;
+			const record = getFieldRecord();
+
+			if (!record) {
+				return;
+			}
+
+			record.isFocused = true;
 		},
 		/**
 		 * Handle the field blur event.
 		 */
 		handleFieldBlur() {
-			const context = getContext();
-			context.isFocused = false;
+			const record = getFieldRecord();
+
+			if (!record) {
+				return;
+			}
+
+			record.isFocused = false;
 		},
 		/**
 		 * Handle the field change event.
 		 */
 		handleFieldChange() {
-			const context = getContext();
-			const { ref } = getElement();
-			context.value = ref.value;
-		},
-		/**
-		 * Handle the field validate event.
-		 */
-		handleFieldValidate() {
-			const context = getContext();
-			const { fieldName, value, validationRules } = context;
-			const { isValid, errors } = validate(value, validationRules);
+			const record = getFieldRecord();
 
-			context.isValid = isValid;
-			context.validationErrors = errors;
-
-			const { ref } = getElement();
-
-			const formContext = getContext('osf/form');
-			if (!formContext.formFields) {
-				formContext.formFields = {};
+			if (!record) {
+				return;
 			}
 
-			formContext.formFields[fieldName] = isValid;
-
-			const event = new CustomEvent('osf-field-validated');
-			ref.dispatchEvent(event);
-		},
-		/**
-		 * Handle server-side validation errors for the field.
-		 *
-		 * Absorbs errors returned by the REST endpoint into the field's own
-		 * context so the field has a single source of validity.
-		 *
-		 * @param {CustomEvent} event The event carrying the failed rule names.
-		 */
-		handleFieldServerErrors(event) {
-			const context = getContext();
-			const { fieldName } = context;
-			const errors = event.detail?.errors || [];
-
-			context.isValid = false;
-			context.validationErrors = errors;
-
-			const formContext = getContext('osf/form');
-			if (formContext.formFields && fieldName in formContext.formFields) {
-				formContext.formFields[fieldName] = false;
-			}
+			const { ref } = getElement();
+			record.value = ref.value;
 		},
 		/**
 		 * Handle the form submit event.
@@ -199,47 +250,25 @@ const { state, actions } = store('osf/form', {
 			ev.preventDefault();
 
 			const context = getContext('osf/form');
-			const { submissionMessages = {} } = context;
 
-			// Guard against double-submit. Set synchronously, before the async
-			// validation round trip, so a second rapid submit is blocked even
-			// while validation is still in flight.
+			// Guard against double-submit. Validation is synchronous, but the
+			// request submitForm() fires is not, so the flag has to be set
+			// before it to block a second rapid submit.
 			if (context.isSubmitting) {
 				return;
 			}
 
 			context.isSubmitting = true;
 
-			const { ref: form } = getElement();
+			actions.validateForm();
 
-			const handleValidated = withScope(() => {
-				if (state.isFormValid) {
-					actions.submitForm();
-				} else {
-					// Validation completed but the form isn't valid, so
-					// submitForm() (and its own reset) never runs.
-					context.isSubmitting = false;
-				}
-			});
+			if (!state.isFormValid) {
+				// submitForm() (and the reset in its `finally`) never runs.
+				context.isSubmitting = false;
+				return;
+			}
 
-			form.addEventListener('osf-form-validated', handleValidated, { once: true });
-
-			actions
-				.validateForm()
-				.then(() => {
-					const event = new CustomEvent('osf-form-validated');
-					form.dispatchEvent(event);
-				})
-				.catch(() => {
-					// Reachable when a field never responds to
-					// `osf-field-validate` and its per-field wait in
-					// validateForm() times out. Surface the same
-					// submission error the fetch path shows, rather than
-					// leaving the button frozen in a submitting state.
-					form.removeEventListener('osf-form-validated', handleValidated);
-					setSubmissionError(context, submissionMessages);
-					context.isSubmitting = false;
-				});
+			actions.submitForm();
 		}),
 		/**
 		 * Submit the form.
@@ -275,17 +304,7 @@ const { state, actions } = store('osf/form', {
 					setSubmissionError(context, submissionMessages);
 
 					if (response.status === 400 && data.data?.errors) {
-						Object.entries(data.data.errors).forEach(([fieldName, errors]) => {
-							const fieldElement = form.querySelector(`[name="${fieldName}"]`);
-							if (!fieldElement) {
-								return;
-							}
-
-							const event = new CustomEvent('osf-field-server-error', {
-								detail: { errors: Array.isArray(errors) ? errors : [errors] },
-							});
-							fieldElement.dispatchEvent(event);
-						});
+						applyServerErrors(context, data.data.errors);
 					}
 				}
 			} catch {
@@ -295,68 +314,50 @@ const { state, actions } = store('osf/form', {
 			}
 		},
 		/**
-		 * Validate the form.
+		 * Validate every registered field.
 		 *
-		 * @return {Promise} A promise that resolves when the validation is complete.
+		 * A field that never registered is simply absent from the registry and
+		 * is skipped, so a field whose view script failed can never stall the
+		 * submission.
 		 */
 		validateForm() {
-			const { formFields } = getContext('osf/form');
-			const { ref: form } = getElement();
+			const { formFields = {} } = getContext('osf/form');
 
-			const fieldNames = Object.keys(formFields || {});
-			const validations = fieldNames.map((fieldName) => {
-				return new Promise((resolve, reject) => {
-					const fieldElement = form.querySelector(`[name="${fieldName}"]`);
-					if (!fieldElement) {
-						return resolve();
-					}
+			Object.values(formFields).forEach((record) => {
+				const { isValid, errors } = validate(record.value, record.validationRules);
 
-					const validationHandler = () => {
-						clearTimeout(timeoutId);
-						fieldElement.removeEventListener('osf-field-validated', validationHandler);
-						resolve();
-					};
-
-					// Bound the wait: if the field's validate directive
-					// never attached (failed view script, removed element,
-					// an error thrown before it dispatches its response)
-					// this promise would otherwise never settle and
-					// Promise.all() would hang forever. Reject so the
-					// field is treated as invalid rather than silently
-					// passing validation.
-					const timeoutId = setTimeout(() => {
-						fieldElement.removeEventListener('osf-field-validated', validationHandler);
-						reject(new Error(`Field "${fieldName}" timed out during validation.`));
-					}, FIELD_VALIDATION_TIMEOUT);
-
-					fieldElement.addEventListener('osf-field-validated', validationHandler, {
-						once: true,
-					});
-
-					const event = new CustomEvent('osf-field-validate', {
-						bubbles: true,
-					});
-					fieldElement.dispatchEvent(event);
-				});
+				record.isValid = isValid;
+				record.errors = errors;
 			});
-
-			return Promise.all(validations);
 		},
 	},
 	callbacks: {
 		/**
-		 * Register the field in the form context.
+		 * Register the field in the form-owned registry.
+		 *
+		 * Fields self-register on init rather than being enumerated by the form
+		 * template, so each field block stays responsible for its own rules and
+		 * the form renders progressively.
+		 *
+		 * `initialRecord` is a one-way handoff: it seeds the registry here and
+		 * is never read again as state.
 		 */
 		registerField() {
-			const context = getContext();
-			const { fieldName, isValid } = context;
+			const { fieldName, initialRecord } = getContext();
+			const { value = '', validationRules = {} } = initialRecord ?? {};
 
 			const formContext = getContext('osf/form');
 			if (!formContext.formFields) {
 				formContext.formFields = {};
 			}
 
-			formContext.formFields[fieldName] = isValid;
+			formContext.formFields[fieldName] = {
+				value,
+				isValid: true,
+				isFocused: false,
+				errors: [],
+				validationRules: { ...validationRules },
+			};
 		},
 		/**
 		 * Initialize the field mask.

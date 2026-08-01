@@ -36,7 +36,10 @@ wp_interactivity_state( 'osf/form' );
 
 $context = wp_interactivity_data_wp_context(
 	[
-		'formFields'         => [],
+		// Registry of per-field records, keyed by field name and populated by
+		// each field's own `callbacks.registerField` init. Cast so it
+		// serializes as a JSON object rather than an empty JSON array.
+		'formFields'         => (object) [],
 		'isSubmitting'       => false,
 		'isSubmitted'        => false,
 		'hasSubmissionError' => false,

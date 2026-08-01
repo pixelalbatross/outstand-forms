@@ -181,6 +181,75 @@ test.describe('Frontend form submission', () => {
 		expect(submitRequests).toBe(1);
 	});
 
+	test('a field that never initializes does not stall submission', async ({ page }) => {
+		// Serve the page with every Interactivity directive stripped from the
+		// second field's control, so the runtime never enhances it: it never
+		// registers, and nothing on it can respond to the form. Validation is
+		// a synchronous loop over the form-owned registry, so an unregistered
+		// field is simply skipped and submission cannot be left waiting.
+		await page.route(postLink, async (route) => {
+			const response = await route.fetch();
+			const body = (await response.text()).replace(/<input[^>]*name="field_2"[^>]*>/, (tag) =>
+				tag.replace(/\sdata-wp-[\w-]+(="[^"]*")?/g, ''),
+			);
+
+			await route.fulfill({ response, body });
+		});
+
+		await page.goto(postLink);
+
+		const form = page.locator('form.wp-block-osf-form');
+		const brokenInput = form.locator('input[name="field_2"]');
+
+		// Guard the fixture: the test is vacuous if the directives survived.
+		await expect(brokenInput).not.toHaveAttribute('data-wp-init--register');
+		await expect(brokenInput).not.toHaveAttribute('data-wp-on--change');
+
+		await form.locator('input[name="field_1"]').fill('user@example.com');
+		await brokenInput.fill('12345');
+
+		const startedAt = Date.now();
+		await form.locator('button[type="submit"]').click();
+
+		// The remaining, healthy field still validates and the request still
+		// goes out. The bound is well inside the 5s per-field wait the retired
+		// event bridge imposed on any field that failed to answer it.
+		await expect(form.locator('.wp-block-osf-form-message')).toBeVisible({ timeout: 3000 });
+		await expect(form).not.toHaveClass(/is-submitting/);
+		expect(Date.now() - startedAt).toBeLessThan(3000);
+	});
+
+	test('an unregistered field cannot mask a sibling failing validation', async ({ page }) => {
+		await page.route(postLink, async (route) => {
+			const response = await route.fetch();
+			const body = (await response.text()).replace(/<input[^>]*name="field_2"[^>]*>/, (tag) =>
+				tag.replace(/\sdata-wp-[\w-]+(="[^"]*")?/g, ''),
+			);
+
+			await route.fulfill({ response, body });
+		});
+
+		let submitRequests = 0;
+		page.on('request', (request) => {
+			if (isSubmitEndpoint(new URL(request.url()))) {
+				submitRequests++;
+			}
+		});
+
+		await page.goto(postLink);
+
+		const form = page.locator('form.wp-block-osf-form');
+		await form.locator('button[type="submit"]').click();
+
+		// The required email is still enforced, promptly, and the broken
+		// sibling neither blocks nor silently waves the submission through.
+		await expect(form.locator('#osf-error-1')).toHaveText('This field is required.', {
+			timeout: 3000,
+		});
+		await expect(form).not.toHaveClass(/is-submitting/);
+		expect(submitRequests).toBe(0);
+	});
+
 	test('two forms on one page keep independent state', async ({ page, requestUtils }) => {
 		const post = await requestUtils.createPost({
 			title: 'E2E Two Forms',
