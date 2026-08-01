@@ -14,6 +14,7 @@ const baseConfig = require('@wordpress/scripts/config/playwright.config.js');
 module.exports = defineConfig({
 	...baseConfig,
 	testDir: './tests/e2e',
+	globalSetup: require.resolve('./tests/e2e/global-setup.js'),
 	webServer: {
 		...baseConfig.webServer,
 		command: 'WP_ENV_PORT=8890 WP_ENV_TESTS_PORT=8891 npm run wp-env start',

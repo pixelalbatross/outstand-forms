@@ -13,7 +13,7 @@
 		"SCRIPT_DEBUG": true
 	},
 	"lifecycleScripts": {
-		"afterStart": "npx wp-env run cli wp theme activate twentytwentytwo && npx wp-env run tests-cli wp theme activate twentytwentytwo"
+		"afterStart": "npx wp-env run cli wp theme activate twentytwentytwo && npx wp-env run cli wp plugin activate outstand-forms && npx wp-env run tests-cli wp theme activate twentytwentytwo && npx wp-env run tests-cli wp plugin activate outstand-forms"
 	},
 	"env": {
 		"tests": {
