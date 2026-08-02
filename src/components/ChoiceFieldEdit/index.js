@@ -81,12 +81,11 @@ export default function ChoiceFieldEdit({
 			'osf-field',
 			`osf-field-${type}`,
 			`osf-field--label-${labelPosition}`,
-			`osf-field-${type}--label-${labelPosition}`,
-			`osf-field-${type}--help-${helpTextPosition}`,
+			`osf-field--help-${helpTextPosition}`,
 			{
-				[`osf-field-${type}--required`]: required,
-				[`osf-field-${type}--has-label`]: !!label,
-				[`osf-field-${type}--has-help`]: !!helpText,
+				'osf-field--required': required,
+				'osf-field--has-label': !!label,
+				'osf-field--has-help': !!helpText,
 			},
 		),
 	});

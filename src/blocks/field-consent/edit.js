@@ -56,12 +56,11 @@ export default function FieldConsentEdit({ attributes, setAttributes, context, c
 			'osf-field',
 			'osf-field-consent',
 			`osf-field--label-${labelPosition}`,
-			`osf-field-consent--label-${labelPosition}`,
-			`osf-field-consent--help-${helpTextPosition}`,
+			`osf-field--help-${helpTextPosition}`,
 			{
-				'osf-field-consent--required': required,
-				'osf-field-consent--has-label': !!label,
-				'osf-field-consent--has-help': !!helpText,
+				'osf-field--required': required,
+				'osf-field--has-label': !!label,
+				'osf-field--has-help': !!helpText,
 			},
 		),
 	});

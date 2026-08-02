@@ -49,9 +49,8 @@ class FieldRenderer {
 		$field      = FieldFactory::instance()->create( $type, $attributes );
 		$field_name = $field->get_field_name();
 
-		// The rendered position, not the requested one: a group of controls
-		// always labels from above, and the wrapper classes have to describe
-		// what was actually rendered.
+		// Asked of the field rather than read from the attributes, so the
+		// wrapper class always describes the position that was rendered.
 		$label_position = $field->get_label_position();
 
 		// A submission that failed server-side redirects back here, so the
@@ -71,11 +70,10 @@ class FieldRenderer {
 			'osf-field',
 			"osf-field-{$type}",
 			"osf-field--label-{$label_position}",
-			"osf-field-{$type}--label-{$label_position}",
-			"osf-field-{$type}--help-{$help_text_position}",
-			$required ? "osf-field-{$type}--required" : '',
-			$label ? "osf-field-{$type}--has-label" : '',
-			$help_text ? "osf-field-{$type}--has-help" : '',
+			"osf-field--help-{$help_text_position}",
+			$required ? 'osf-field--required' : '',
+			$label ? 'osf-field--has-label' : '',
+			$help_text ? 'osf-field--has-help' : '',
 		];
 		$wrapper_classes = array_filter( $wrapper_classes );
 		$wrapper_classes = array_map( 'sanitize_html_class', $wrapper_classes );

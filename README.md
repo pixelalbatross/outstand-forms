@@ -91,11 +91,11 @@ Forms inherit your theme's styles. For custom styling, the markup exposes two la
 Block wrappers (one per block):
 
 - `.wp-block-osf-form`, `.wp-block-osf-form-fields`, `.wp-block-osf-form-submit`, `.wp-block-osf-form-errors`, `.wp-block-osf-form-message`, `.wp-block-osf-field-turnstile`
-- `.osf-field-input`, `.osf-field-textarea` — with `--required`, `--has-label` and `--has-help` modifiers
 
 Field internals (shared by every field type):
 
-- `.osf-field` — the field root, with `--label-left` / `--label-right` modifiers
+- `.osf-field` — the field root, carrying every state as a modifier: `--label-top` / `--label-left` / `--label-right`, `--help-top` / `--help-bottom`, `--required`, `--has-label`, `--has-help`
+- `.osf-field-input`, `.osf-field-textarea`, `.osf-field-select`, `.osf-field-radio`, `.osf-field-checkbox`, `.osf-field-consent` — which type the field is. Combine with a modifier to scope one: `.osf-field-select.osf-field--required`. `.osf-field-input` additionally carries its HTML type, e.g. `.osf-field-input--email`
 - `.osf-field__wrapper`, `.osf-field__label`, `.osf-field__required-indicator`
 - `.osf-field__input`, `.osf-field__textarea`, `.osf-field__select`, `.osf-field__checkbox`
 - `.osf-field__choices` — the radio/checkbox group, with `--radio` / `--checkbox` modifiers

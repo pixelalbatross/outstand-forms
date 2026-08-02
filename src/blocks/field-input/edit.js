@@ -69,12 +69,11 @@ export default function FieldInputEdit({ attributes, setAttributes, context, cli
 			'osf-field-input',
 			`osf-field-input--${type}`,
 			`osf-field--label-${labelPosition}`,
-			`osf-field-input--label-${labelPosition}`,
-			`osf-field-input--help-${helpTextPosition}`,
+			`osf-field--help-${helpTextPosition}`,
 			{
-				'osf-field-input--required': required,
-				'osf-field-input--has-label': !!label,
-				'osf-field-input--has-help': !!helpText,
+				'osf-field--required': required,
+				'osf-field--has-label': !!label,
+				'osf-field--has-help': !!helpText,
 			},
 		),
 	});
