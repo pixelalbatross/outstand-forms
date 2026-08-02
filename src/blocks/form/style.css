@@ -24,6 +24,21 @@
 	display: block;
 }
 
+/*
+ * A label beside its control sizes to its own text.
+ *
+ * Themes commonly give form elements `width: 100%`, which is right for a label
+ * stacked above its control and wrong for one sitting next to it: as a flex
+ * item it then swallows the rest of the row and pushes the control to the far
+ * edge. Scoped to the inline positions, and only ever undoing a width the
+ * plugin's own `flex-direction: row` created the problem for.
+ */
+.osf-field--label-left > .osf-field__label,
+.osf-field--label-right > .osf-field__label {
+	flex: 0 0 auto;
+	width: auto;
+}
+
 .wp-block-osf-form.is-submitting .wp-block-osf-form-submit__button > .wp-block-button__link {
 	opacity: 0.6;
 	pointer-events: none;

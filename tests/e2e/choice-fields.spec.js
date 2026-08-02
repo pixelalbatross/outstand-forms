@@ -114,6 +114,48 @@ test.describe('Choice fields', () => {
 		}
 	});
 
+	test('an inline label sits next to its control for every field type', async ({
+		page,
+		requestUtils,
+	}) => {
+		const post = await requestUtils.createPost({
+			title: 'E2E Inline Labels',
+			status: 'publish',
+			content: `<!-- wp:osf/form {"formId":"e2e-inline-labels"} -->
+<!-- wp:osf/form-fields -->
+<!-- wp:osf/field-input {"fieldId":1,"name":"a","label":"Name","labelPosition":"left"} /-->
+<!-- wp:osf/field-textarea {"fieldId":2,"name":"b","label":"Message","labelPosition":"left"} /-->
+<!-- wp:osf/field-select {"fieldId":3,"name":"c","label":"Country","labelPosition":"left"} -->
+<!-- wp:osf/field-option {"label":"Portugal","value":"pt"} /-->
+<!-- /wp:osf/field-select -->
+<!-- wp:osf/field-radio {"fieldId":4,"name":"d","label":"Size","labelPosition":"left"} -->
+<!-- wp:osf/field-option {"label":"Small","value":"s"} /-->
+<!-- /wp:osf/field-radio -->
+<!-- /wp:osf/form-fields -->
+<!-- /wp:osf/form -->`,
+		});
+
+		await page.goto(post.link);
+
+		const form = page.locator('form.wp-block-osf-form');
+
+		// A theme giving form elements `width: 100%` must not let the label eat
+		// the row and strand the control at the far edge — the label sizes to
+		// its own text, whatever the field type.
+		for (const selector of [
+			'.osf-field-input',
+			'.osf-field-textarea',
+			'.osf-field-select',
+			'.osf-field-radio',
+		]) {
+			const field = form.locator(selector);
+			const box = await field.boundingBox();
+			const label = await field.locator('.osf-field__label').boundingBox();
+
+			expect(label.width).toBeLessThan(box.width / 2);
+		}
+	});
+
 	test('names a group through aria-labelledby rather than a label for', async ({ page }) => {
 		await page.goto(postLink);
 
