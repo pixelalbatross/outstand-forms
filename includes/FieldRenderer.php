@@ -43,12 +43,16 @@ class FieldRenderer {
 
 		$required           = $attributes['required'] ?? false;
 		$label              = $attributes['label'] ?? '';
-		$label_position     = $attributes['labelPosition'];
 		$help_text          = $attributes['helpText'] ?? '';
 		$help_text_position = $attributes['helpTextPosition'];
 
 		$field      = FieldFactory::instance()->create( $type, $attributes );
 		$field_name = $field->get_field_name();
+
+		// The rendered position, not the requested one: a group of controls
+		// always labels from above, and the wrapper classes have to describe
+		// what was actually rendered.
+		$label_position = $field->get_label_position();
 
 		// A submission that failed server-side redirects back here, so the
 		// field re-renders with what the visitor chose and the rules it broke.

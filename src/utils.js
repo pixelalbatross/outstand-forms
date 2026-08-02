@@ -124,6 +124,21 @@ export function resolveFieldControl(type) {
 }
 
 /**
+ * Checks whether a field type renders several inputs under one name.
+ *
+ * `FieldFactory::get_registered_types()` decides this, from whether the type's
+ * control is a `GroupComponentInterface`; it reaches the editor as the field
+ * type's `group` flag. A group labels a whole list rather than one control, so
+ * it cannot take an inline label.
+ *
+ * @param {string} type Field type.
+ * @return {boolean} True if the type renders a group of controls.
+ */
+export function isGroupFieldType(type) {
+	return getFieldTypes().find((fieldType) => fieldType?.type === type)?.group === true;
+}
+
+/**
  * Checks whether an input type supports the mask attribute.
  *
  * `Input::UNMASKABLE_TYPES` is the only definition of which input types

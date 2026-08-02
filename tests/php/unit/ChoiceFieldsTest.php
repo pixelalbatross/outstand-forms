@@ -125,6 +125,117 @@ class ChoiceFieldsTest extends \WP_UnitTestCase {
 	}
 
 	/**
+	 * A group labels its whole list, so an inline label position must not
+	 * reach it — inline, the label lands in the row of choices, and the form's
+	 * default would silently rearrange every group in it.
+	 */
+	public function test_a_group_ignores_inline_label_positions(): void {
+
+		$factory = new FieldFactory();
+
+		foreach ( [ 'radio', 'checkbox' ] as $type ) {
+			ob_start();
+			$factory->create(
+				$type,
+				[
+					'fieldId'       => 1,
+					'label'         => 'Pick',
+					'labelPosition' => 'left',
+					'options'       => self::OPTIONS,
+				]
+			)->render();
+			$markup = ob_get_clean();
+
+			// The inline layout wraps the control; a group never gets one.
+			$this->assertStringNotContainsString( 'osf-field__wrapper', $markup );
+		}
+	}
+
+	/**
+	 * A single control still honors an inline label.
+	 */
+	public function test_a_single_control_keeps_inline_label_positions(): void {
+
+		$factory = new FieldFactory();
+
+		ob_start();
+		$factory->create(
+			'select',
+			[
+				'fieldId'       => 1,
+				'label'         => 'Country',
+				'labelPosition' => 'left',
+				'options'       => self::OPTIONS,
+			]
+		)->render();
+		$markup = ob_get_clean();
+
+		$this->assertStringContainsString( 'osf-field__wrapper', $markup );
+	}
+
+	/**
+	 * Each option keeps its own label beside its own input, whatever the
+	 * field's label position says.
+	 */
+	public function test_option_labels_are_unaffected_by_the_field_label_position(): void {
+
+		$factory = new FieldFactory();
+
+		$markup = [];
+		foreach ( [ 'top', 'left', 'right' ] as $position ) {
+			$markup[ $position ] = $factory->create(
+				'radio',
+				[
+					'fieldId'       => 1,
+					'name'          => 'size',
+					'labelPosition' => $position,
+					'options'       => self::OPTIONS,
+				]
+			)->get_component( 'field' )->get_markup();
+		}
+
+		$this->assertSame( $markup['top'], $markup['left'] );
+		$this->assertSame( $markup['top'], $markup['right'] );
+	}
+
+	/**
+	 * The editor is told which types are groups, so it can mirror the rule
+	 * without a list of its own.
+	 */
+	public function test_registered_types_flag_the_groups(): void {
+
+		$factory = new FieldFactory();
+
+		$by_type = [];
+		foreach ( $factory->get_registered_types() as $definition ) {
+			$by_type[ $definition['type'] ] = $definition['group'];
+		}
+
+		$this->assertTrue( $by_type['radio'] );
+		$this->assertTrue( $by_type['checkbox'] );
+		$this->assertFalse( $by_type['select'] );
+		$this->assertFalse( $by_type['consent'] );
+		$this->assertFalse( $by_type['text'] );
+	}
+
+	/**
+	 * A tick box must not be stretched by the field's column layout, whatever
+	 * the label position. The wrapper takes the stretch instead, which is what
+	 * keeps this working without a stylesheet of the plugin's own.
+	 */
+	public function test_the_consent_box_is_wrapped_so_it_keeps_its_size(): void {
+
+		$factory = new FieldFactory();
+
+		$markup = $factory->create( 'consent', [ 'fieldId' => 1 ] )
+			->get_component( 'field' )
+			->get_markup();
+
+		$this->assertStringContainsString( '<span class="osf-field__checkbox-field">', $markup );
+		$this->assertStringContainsString( '</span>', $markup );
+	}
+
+	/**
 	 * The allowlist must be derived from the authored options.
 	 */
 	public function test_rules_carry_the_option_values(): void {

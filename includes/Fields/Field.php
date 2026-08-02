@@ -143,6 +143,24 @@ class Field implements FieldInterface {
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * A group of radios or checkboxes labels the whole list, so it cannot sit
+	 * beside one control the way a single input's label can — inline, it would
+	 * be dropped into the row of choices. Groups always label from above,
+	 * whatever the form's default is, and each option keeps its own label
+	 * beside its own input.
+	 */
+	public function get_label_position(): string {
+
+		if ( $this->get_component( 'field' ) instanceof GroupComponentInterface ) {
+			return 'top';
+		}
+
+		return $this->attributes['labelPosition'] ?? 'top';
+	}
+
+	/**
+	 * {@inheritDoc}
 	 */
 	public function get_label_id(): string {
 		return sprintf( 'osf-label-%1$s', $this->attributes['fieldId'] ?? '' );
@@ -206,7 +224,7 @@ class Field implements FieldInterface {
 	 */
 	public function render(): void {
 
-		$label_position     = $this->attributes['labelPosition'] ?? 'top';
+		$label_position     = $this->get_label_position();
 		$help_text_position = $this->attributes['helpTextPosition'] ?? 'bottom';
 		$has_inline_label   = in_array( $label_position, self::INLINE_LABEL_POSITIONS, true );
 

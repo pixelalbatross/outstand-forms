@@ -12,6 +12,7 @@ import {
 	getLabelPositions,
 	getPrioritizedInserterBlocks,
 	isFieldBlock,
+	isGroupFieldType,
 	isInlineLabelPosition,
 	resolveFieldControl,
 	resolveFieldName,
@@ -270,6 +271,36 @@ describe('getFieldTypes', () => {
 		};
 
 		expect(getFieldTypes()).toEqual([{ type: 'text', label: 'Text', control: 'input' }]);
+	});
+});
+
+describe('isGroupFieldType', () => {
+	afterEach(() => {
+		delete global.osfSettings;
+	});
+
+	it('is true for a type the server flagged as a group', () => {
+		global.osfSettings = {
+			fieldTypes: [{ type: 'radio', control: 'radio', group: true }],
+		};
+
+		expect(isGroupFieldType('radio')).toBe(true);
+	});
+
+	it('is false for a single control', () => {
+		global.osfSettings = {
+			fieldTypes: [{ type: 'select', control: 'select', group: false }],
+		};
+
+		expect(isGroupFieldType('select')).toBe(false);
+	});
+
+	it('is false for an unregistered type or missing settings', () => {
+		expect(isGroupFieldType('radio')).toBe(false);
+
+		global.osfSettings = { fieldTypes: [{ type: 'text', control: 'input' }] };
+
+		expect(isGroupFieldType('text')).toBe(false);
 	});
 });
 

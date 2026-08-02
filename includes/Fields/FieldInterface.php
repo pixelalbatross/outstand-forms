@@ -64,6 +64,16 @@ interface FieldInterface {
 	public function get_label_id(): string;
 
 	/**
+	 * Get where this field's label sits.
+	 *
+	 * The rendered position, which is not always the requested one: a group of
+	 * controls cannot take an inline label.
+	 *
+	 * @return string
+	 */
+	public function get_label_position(): string;
+
+	/**
 	 * Get the field help text ID.
 	 *
 	 * @return string

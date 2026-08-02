@@ -12,7 +12,7 @@ import HelpText from '../components/HelpText';
 import Input from '../components/Input';
 import Textarea from '../components/Textarea';
 import Checkbox from '../components/Checkbox';
-import { isInlineLabelPosition, resolveFieldControl } from '../utils';
+import { isInlineLabelPosition, isGroupFieldType, resolveFieldControl } from '../utils';
 
 export default function Field({
 	type = 'text',
@@ -29,10 +29,15 @@ export default function Field({
 
 	const {
 		fieldId,
-		labelPosition = defaultLabelPosition,
+		labelPosition: labelPositionAttribute = defaultLabelPosition,
 		helpTextPosition = defaultHelpTextPosition,
 	} = attributes;
 
+	// A group of radios or checkboxes labels the whole list, so its label
+	// cannot sit beside one control — inline, it lands in the row of choices.
+	// Groups always label from above, and each option keeps its own label
+	// beside its own input. Mirrors Field::get_label_position() on the server.
+	const labelPosition = isGroupFieldType(type) ? 'top' : labelPositionAttribute;
 	const hasInlineLabel = isInlineLabelPosition(labelPosition);
 
 	const label = <Label attributes={attributes} setAttributes={setAttributes} context={context} />;

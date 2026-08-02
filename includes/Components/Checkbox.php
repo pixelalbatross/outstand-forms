@@ -47,6 +47,13 @@ class Checkbox extends AbstractComponent {
 		// binding that actually carries this field's state.
 		unset( $html_attributes['data-wp-bind--value'], $html_attributes['data-wp-on--input'] );
 
-		return sprintf( '<input %s />', $this->build_attributes( $html_attributes ) );
+		// Wrapped, so the box keeps its own size. A field lays its parts out in
+		// a column, and a column stretches what it holds to the full width —
+		// which is right for a text input and absurd for a tick box. The
+		// wrapper takes the stretch; the box inside it stays inline.
+		return sprintf(
+			'<span class="osf-field__checkbox-field"><input %s /></span>',
+			$this->build_attributes( $html_attributes )
+		);
 	}
 }

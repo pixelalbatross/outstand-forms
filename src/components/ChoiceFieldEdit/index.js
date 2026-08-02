@@ -28,7 +28,7 @@ import { __ } from '@wordpress/i18n';
  */
 import { labelPositionOptions, helpTextPositionOptions } from '../../options';
 import { useIsDuplicateFieldName } from '../../hooks/useIsDuplicateFieldName';
-import { resolveFieldName } from '../../utils';
+import { resolveFieldName, isGroupFieldType } from '../../utils';
 import ChoiceOptions from '../ChoiceOptions';
 import Field from '../../fields';
 
@@ -69,10 +69,15 @@ export default function ChoiceFieldEdit({
 		required,
 		ariaLabel,
 		label,
-		labelPosition = defaultLabelPosition,
+		labelPosition: labelPositionAttribute = defaultLabelPosition,
 		helpText,
 		helpTextPosition = defaultHelpTextPosition,
 	} = attributes;
+
+	// The rendered position, not the requested one: a group of controls always
+	// labels from above, and the wrapper classes have to describe what was
+	// actually rendered. Mirrors Field::get_label_position() on the server.
+	const labelPosition = isGroupFieldType(type) ? 'top' : labelPositionAttribute;
 
 	const isDuplicateFieldName = useIsDuplicateFieldName(clientId, attributes);
 
@@ -135,22 +140,30 @@ export default function ChoiceFieldEdit({
 					{children}
 				</PanelBody>
 				<PanelBody title={__('Appearance', 'outstand-forms')} initialOpen={false}>
-					<ToggleGroupControl
-						label={__('Label Position', 'outstand-forms')}
-						value={labelPosition}
-						isBlock
-						onChange={onLabelPositionChange}
-						help={__('Select the position of the label.', 'outstand-forms')}
-						__next40pxDefaultSize
-						__nextHasNoMarginBottom
-					>
-						{/* eslint-disable-next-line no-shadow */}
-						{labelPositionOptions.map(({ value, label }) => {
-							return (
-								<ToggleGroupControlOption key={value} value={value} label={label} />
-							);
-						})}
-					</ToggleGroupControl>
+					{/* A group labels its whole list of options, so it always
+					    labels from above and the control would do nothing. */}
+					{!isGroupFieldType(type) && (
+						<ToggleGroupControl
+							label={__('Label Position', 'outstand-forms')}
+							value={labelPosition}
+							isBlock
+							onChange={onLabelPositionChange}
+							help={__('Select the position of the label.', 'outstand-forms')}
+							__next40pxDefaultSize
+							__nextHasNoMarginBottom
+						>
+							{/* eslint-disable-next-line no-shadow */}
+							{labelPositionOptions.map(({ value, label }) => {
+								return (
+									<ToggleGroupControlOption
+										key={value}
+										value={value}
+										label={label}
+									/>
+								);
+							})}
+						</ToggleGroupControl>
+					)}
 					<ToggleGroupControl
 						label={__('Help Text Position', 'outstand-forms')}
 						value={helpTextPosition}
