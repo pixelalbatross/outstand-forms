@@ -99,7 +99,8 @@ Field internals (shared by every field type):
 - `.osf-field__wrapper`, `.osf-field__label`, `.osf-field__required-indicator`
 - `.osf-field__input`, `.osf-field__textarea`, `.osf-field__select`, `.osf-field__checkbox`
 - `.osf-field__choices` — the radio/checkbox group, with `--radio` / `--checkbox` modifiers
-- `.osf-field__choice`, `.osf-field__choice-input`, `.osf-field__choice-label` — one option
+- `.osf-field__choice` — one option, holding a `.osf-field__choice-label` that wraps its own `.osf-field__choice-input` and `.osf-field__choice-text`
+- `.osf-field__checkbox-field` — wraps the consent box so a column layout cannot stretch it
 - `.osf-field__help-text`, `.osf-field__error`
 
 ## Hooks & Extensibility

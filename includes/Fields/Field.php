@@ -144,18 +144,13 @@ class Field implements FieldInterface {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * A group of radios or checkboxes labels the whole list, so it cannot sit
-	 * beside one control the way a single input's label can — inline, it would
-	 * be dropped into the row of choices. Groups always label from above,
-	 * whatever the form's default is, and each option keeps its own label
-	 * beside its own input.
+	 * This is the field's own label — the one naming a group of choices as
+	 * much as a single input — so it follows the form's placement and the
+	 * field's override of it. Each option's label is a separate thing, written
+	 * by {@see \Outstand\WP\Forms\Components\Choice} beside its own input, and
+	 * is never moved by this.
 	 */
 	public function get_label_position(): string {
-
-		if ( $this->get_component( 'field' ) instanceof GroupComponentInterface ) {
-			return 'top';
-		}
-
 		return $this->attributes['labelPosition'] ?? 'top';
 	}
 

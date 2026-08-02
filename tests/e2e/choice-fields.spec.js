@@ -94,6 +94,26 @@ test.describe('Choice fields', () => {
 		await expect(form.locator('input[type="checkbox"][name="terms"]')).toHaveCount(1);
 	});
 
+	test('an option label sits beside its own box, whatever the field label position', async ({
+		page,
+	}) => {
+		await page.goto(postLink);
+
+		const form = page.locator('form.wp-block-osf-form');
+
+		// Themes routinely set `label { display: block }`. The option's text is
+		// inside its label, next to the input, so it cannot be pushed onto a
+		// line of its own — and no stylesheet of the plugin's holds it there.
+		for (const selector of ['.osf-field-radio', '.osf-field-checkbox']) {
+			const choice = form.locator(`${selector} .osf-field__choice`).first();
+			const input = await choice.locator('input').boundingBox();
+			const text = await choice.locator('.osf-field__choice-text').boundingBox();
+
+			expect(text.x).toBeGreaterThan(input.x);
+			expect(Math.abs(text.y - input.y)).toBeLessThan(input.height + text.height);
+		}
+	});
+
 	test('names a group through aria-labelledby rather than a label for', async ({ page }) => {
 		await page.goto(postLink);
 

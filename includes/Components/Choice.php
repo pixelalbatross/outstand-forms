@@ -60,11 +60,15 @@ class Choice extends AbstractComponent implements GroupComponentInterface {
 				'class'   => "osf-field__choice-input osf-field__choice-input--{$this->input_type}",
 			] + $this->get_option_directives();
 
+			// The input sits inside its label rather than beside it. Themes
+			// routinely set `label { display: block }`, which drops a sibling
+			// label onto its own line under the control; nested, the box and
+			// its text stay on one line without the plugin styling anything.
 			$markup .= sprintf(
-				'<div class="osf-field__choice" %1$s><input %2$s /><label class="osf-field__choice-label" for="%3$s">%4$s</label></div>',
+				'<div class="osf-field__choice" %1$s><label class="osf-field__choice-label" for="%2$s"><input %3$s /> <span class="osf-field__choice-text">%4$s</span></label></div>',
 				wp_interactivity_data_wp_context( [ 'optionValue' => (string) $option['value'] ] ),
-				$this->build_attributes( $input_attributes ),
 				esc_attr( $option_id ),
+				$this->build_attributes( $input_attributes ),
 				esc_html( $option['label'] )
 			);
 		}

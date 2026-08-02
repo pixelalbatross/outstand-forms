@@ -6,7 +6,6 @@ use InvalidArgumentException;
 use Outstand\WP\Forms\Components\Checkbox as CheckboxComponent;
 use Outstand\WP\Forms\Components\Choice as ChoiceComponent;
 use Outstand\WP\Forms\Components\ComponentInterface;
-use Outstand\WP\Forms\Components\GroupComponentInterface;
 use Outstand\WP\Forms\Components\Select as SelectComponent;
 use Outstand\WP\Forms\Components\Textarea as TextareaComponent;
 use Outstand\WP\Forms\Fields\Field;
@@ -201,10 +200,6 @@ class FieldFactory {
 				'type'    => $type,
 				'label'   => $definition['label'] ?? ucfirst( $type ),
 				'control' => $definition['control'] ?? 'input',
-				// Whether the type renders several inputs under one name. The
-				// editor needs to know: a group labels a list rather than a
-				// single control, so it cannot take an inline label.
-				'group'   => $this->create( $type, [] )->get_component( 'field' ) instanceof GroupComponentInterface,
 			];
 		}
 

@@ -125,33 +125,6 @@ class ChoiceFieldsTest extends \WP_UnitTestCase {
 	}
 
 	/**
-	 * A group labels its whole list, so an inline label position must not
-	 * reach it — inline, the label lands in the row of choices, and the form's
-	 * default would silently rearrange every group in it.
-	 */
-	public function test_a_group_ignores_inline_label_positions(): void {
-
-		$factory = new FieldFactory();
-
-		foreach ( [ 'radio', 'checkbox' ] as $type ) {
-			ob_start();
-			$factory->create(
-				$type,
-				[
-					'fieldId'       => 1,
-					'label'         => 'Pick',
-					'labelPosition' => 'left',
-					'options'       => self::OPTIONS,
-				]
-			)->render();
-			$markup = ob_get_clean();
-
-			// The inline layout wraps the control; a group never gets one.
-			$this->assertStringNotContainsString( 'osf-field__wrapper', $markup );
-		}
-	}
-
-	/**
 	 * A single control still honors an inline label.
 	 */
 	public function test_a_single_control_keeps_inline_label_positions(): void {
@@ -196,26 +169,6 @@ class ChoiceFieldsTest extends \WP_UnitTestCase {
 
 		$this->assertSame( $markup['top'], $markup['left'] );
 		$this->assertSame( $markup['top'], $markup['right'] );
-	}
-
-	/**
-	 * The editor is told which types are groups, so it can mirror the rule
-	 * without a list of its own.
-	 */
-	public function test_registered_types_flag_the_groups(): void {
-
-		$factory = new FieldFactory();
-
-		$by_type = [];
-		foreach ( $factory->get_registered_types() as $definition ) {
-			$by_type[ $definition['type'] ] = $definition['group'];
-		}
-
-		$this->assertTrue( $by_type['radio'] );
-		$this->assertTrue( $by_type['checkbox'] );
-		$this->assertFalse( $by_type['select'] );
-		$this->assertFalse( $by_type['consent'] );
-		$this->assertFalse( $by_type['text'] );
 	}
 
 	/**
