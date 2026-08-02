@@ -728,11 +728,46 @@
 		"errors": []
 	},
 	{
-		"description": "minSelected does not count blanks",
+		"description": "minSelected passes an empty value: a minimum says how many to pick, not that picking is compulsory",
+		"value": [],
+		"rules": { "minSelected": 2 },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "minSelected treats an array of blanks as nothing picked, so it passes too",
 		"value": [ "", "" ],
 		"rules": { "minSelected": 1 },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "minSelected still fails a partial selection below the minimum",
+		"value": [ "pt" ],
+		"rules": { "minSelected": 2 },
 		"is_valid": false,
 		"errors": [ "minSelected" ]
+	},
+	{
+		"description": "required and minSelected compose: empty fails required alone",
+		"value": [],
+		"rules": { "required": true, "minSelected": 2 },
+		"is_valid": false,
+		"errors": [ "required" ]
+	},
+	{
+		"description": "required and minSelected compose: one of two required picks fails the minimum alone",
+		"value": [ "pt" ],
+		"rules": { "required": true, "minSelected": 2 },
+		"is_valid": false,
+		"errors": [ "minSelected" ]
+	},
+	{
+		"description": "required and minSelected compose: two picks satisfy both",
+		"value": [ "pt", "es" ],
+		"rules": { "required": true, "minSelected": 2 },
+		"is_valid": true,
+		"errors": []
 	},
 	{
 		"description": "minSelected of zero disables the rule",

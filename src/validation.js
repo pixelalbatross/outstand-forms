@@ -157,6 +157,14 @@ function minSelected(value, config = 0) {
 		return true;
 	}
 
+	// A minimum says how many to pick, not that picking is compulsory:
+	// `required` is the only rule that objects to an empty value. The two
+	// compose — required with a minimum of two means "at least two", optional
+	// with a minimum of two means "none, or at least two".
+	if (countSelected(value) === 0) {
+		return true;
+	}
+
 	return countSelected(value) >= Number(config);
 }
 

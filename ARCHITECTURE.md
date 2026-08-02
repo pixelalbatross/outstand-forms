@@ -418,8 +418,15 @@ filter applies to the REST route and the no-JavaScript fallback alike.
 | `min` | `validate_min` | Float comparison; skips non-numeric values |
 | `max` | `validate_max` | Float comparison; skips non-numeric values |
 | `options` | `validate_options` | Every submitted value must appear in the field's option list; an empty list disables the rule |
-| `minSelected` | `validate_min_selected` | Selection count comparison; blanks are not selections |
+| `minSelected` | `validate_min_selected` | Selection count comparison; blanks are not selections; skips an empty value |
 | `maxSelected` | `validate_max_selected` | Selection count comparison; blanks are not selections |
+
+`minSelected` says how many to pick, not that picking is compulsory — `required`
+is the only rule that objects to an empty value, the same way `minLength` leaves
+an empty optional input alone. The two compose: required with a minimum of two
+means "at least two"; optional with a minimum of two means "none, or at least
+two". Which is also why a required group needs no `minSelected` of 1 — that is
+what `required` already means for a group.
 
 `minSelected` and `maxSelected` have no HTML equivalent, so the browser cannot
 enforce them natively — the client store checks them before submitting and the

@@ -233,6 +233,14 @@ class Validator {
 			return true;
 		}
 
+		// A minimum says how many to pick, not that picking is compulsory:
+		// `required` is the only rule that objects to an empty value. The two
+		// compose — required with a minimum of two means "at least two",
+		// optional with a minimum of two means "none, or at least two".
+		if ( 0 === $this->count_selected( $value ) ) {
+			return true;
+		}
+
 		return $this->count_selected( $value ) >= (int) $config;
 	}
 
