@@ -151,7 +151,13 @@ describe('Field', () => {
 			/>,
 		);
 
-		const children = Array.from(container.children);
+		// An inline label pairs with its control in a row of its own, so that
+		// the help-text placeholder cannot size the row and push the two apart.
+		const row = container.querySelector('.osf-field__row');
+
+		expect(row).not.toBeNull();
+
+		const children = Array.from(row.children);
 		const inputWrapperIndex = children.findIndex((el) =>
 			el.classList.contains('osf-field__wrapper'),
 		);

@@ -7,6 +7,7 @@ import { store, getContext, getElement, withSyncEvent } from '@wordpress/interac
  * Internal dependencies
  */
 import { validate } from './../../validation';
+import { CHECKED_VALUE } from './../../constants';
 
 /**
  * Flag the form as failed and surface the generic error message.
@@ -145,9 +146,12 @@ const { state, actions } = store('osf/form', {
 				return '';
 			}
 
-			const { validationMessages = {} } = getContext('osf/form');
+			const { validationMessages = {}, fieldMessages = {} } = getContext('osf/form');
 			const error = record.errors[0];
-			const message = validationMessages?.[error];
+
+			// A field's own message wins: it is the one pluralized against this
+			// field's number.
+			const message = fieldMessages?.[error] ?? validationMessages?.[error];
 
 			// Skip if the error is not in the validation messages.
 			if (message === undefined) {
@@ -170,6 +174,32 @@ const { state, actions } = store('osf/form', {
 
 			const { initialRecord } = getContext();
 			return initialRecord?.value ?? '';
+		},
+		/**
+		 * Determine whether the option this element renders is chosen.
+		 *
+		 * Bound to every radio and checkbox in a group. The option's own value
+		 * comes from its element-local context, so one getter serves them all.
+		 *
+		 * @return {boolean} True if the option is chosen.
+		 */
+		get isOptionChecked() {
+			const { optionValue } = getContext();
+			const value = state.fieldValue;
+
+			if (Array.isArray(value)) {
+				return value.includes(optionValue);
+			}
+
+			return value === optionValue;
+		},
+		/**
+		 * Determine whether a single checkbox — the consent field — is ticked.
+		 *
+		 * @return {boolean} True if the box is ticked.
+		 */
+		get isFieldChecked() {
+			return state.fieldValue === CHECKED_VALUE;
 		},
 		/**
 		 * Determine if the field is focused.
@@ -242,6 +272,48 @@ const { state, actions } = store('osf/form', {
 
 			const { ref } = getElement();
 			record.value = ref.value;
+		},
+		/**
+		 * Handle a radio or checkbox in a choice group changing.
+		 *
+		 * A radio replaces the field's value; a checkbox adds or removes its
+		 * own value from the list, since several boxes share one field.
+		 */
+		handleChoiceChange() {
+			const record = getFieldRecord();
+
+			if (!record) {
+				return;
+			}
+
+			const { ref } = getElement();
+
+			if (ref.type !== 'checkbox') {
+				record.value = ref.value;
+				return;
+			}
+
+			const selected = Array.isArray(record.value) ? record.value : [];
+
+			record.value = ref.checked
+				? [...selected, ref.value]
+				: selected.filter((value) => value !== ref.value);
+		},
+		/**
+		 * Handle the consent checkbox changing.
+		 *
+		 * One box, so it carries the ticked value or nothing at all — the same
+		 * scalar the browser would submit without JavaScript.
+		 */
+		handleConsentChange() {
+			const record = getFieldRecord();
+
+			if (!record) {
+				return;
+			}
+
+			const { ref } = getElement();
+			record.value = ref.checked ? CHECKED_VALUE : '';
 		},
 		/**
 		 * Handle the form submit event.

@@ -57,23 +57,40 @@ export function isFieldBlock(block) {
  * it stays insertable through the regular inserter. If a block ever breaks the
  * convention, give the registry an explicit block name and read it here.
  *
- * @return {Array<string>} Block and variation names, in registration order.
+ * The list is ordered, not just filtered: the inserter shows these first, in
+ * the order given. `order` carries that editorial ranking, since the registry
+ * knows which types exist but not which ones an author reaches for most.
+ * Registry order alone would rank alphabetically and bury the text field.
+ *
+ * @param {Array<string>} order Field types in the order they should be offered.
+ * @return {Array<string>} Block and variation names, ranked.
  */
-export function getPrioritizedInserterBlocks() {
+export function getPrioritizedInserterBlocks(order = []) {
 	const fieldBlockNames = getFieldBlockNames();
 
-	const names = getFieldTypes().map((fieldType) => {
-		const control = fieldType?.control ?? 'input';
-		const block = `osf/field-${control}`;
+	const entries = getFieldTypes()
+		.map((fieldType) => {
+			const control = fieldType?.control ?? 'input';
+			const block = `osf/field-${control}`;
 
-		if (!fieldBlockNames.includes(block)) {
-			return undefined;
-		}
+			if (!fieldBlockNames.includes(block)) {
+				return undefined;
+			}
 
-		return control === 'input' ? `${block}/${fieldType.type}` : block;
-	});
+			const rank = order.indexOf(fieldType?.type);
 
-	return [...new Set(names.filter(Boolean))];
+			return {
+				name: control === 'input' ? `${block}/${fieldType.type}` : block,
+				// A type the ranking doesn't mention sorts after every one it
+				// does, keeping its registration order among its peers.
+				rank: rank === -1 ? Number.MAX_SAFE_INTEGER : rank,
+			};
+		})
+		.filter(Boolean);
+
+	entries.sort((a, b) => a.rank - b.rank);
+
+	return [...new Set(entries.map((entry) => entry.name))];
 }
 
 /**

@@ -101,6 +101,59 @@ describe('getPrioritizedInserterBlocks', () => {
 		expect(getPrioritizedInserterBlocks()).toEqual([]);
 	});
 
+	it('ranks types by the given order, not by registration order', () => {
+		global.osfSettings = {
+			fieldBlockNames: ['osf/field-input', 'osf/field-textarea', 'osf/field-checkbox'],
+			// Registration order is alphabetical, which would bury the text
+			// field the inserter should lead with.
+			fieldTypes: [
+				{ type: 'checkbox', control: 'checkbox' },
+				{ type: 'email', control: 'input' },
+				{ type: 'text', control: 'input' },
+				{ type: 'textarea', control: 'textarea' },
+			],
+		};
+
+		expect(getPrioritizedInserterBlocks(['text', 'email', 'textarea', 'checkbox'])).toEqual([
+			'osf/field-input/text',
+			'osf/field-input/email',
+			'osf/field-textarea',
+			'osf/field-checkbox',
+		]);
+	});
+
+	it('appends a type the ranking does not mention', () => {
+		global.osfSettings = {
+			fieldBlockNames: ['osf/field-input'],
+			fieldTypes: [
+				{ type: 'iban', control: 'input' },
+				{ type: 'text', control: 'input' },
+			],
+		};
+
+		// A type registered by a third party still reaches the inserter, after
+		// the ones the ranking names.
+		expect(getPrioritizedInserterBlocks(['text'])).toEqual([
+			'osf/field-input/text',
+			'osf/field-input/iban',
+		]);
+	});
+
+	it('keeps registration order among types the ranking does not mention', () => {
+		global.osfSettings = {
+			fieldBlockNames: ['osf/field-input'],
+			fieldTypes: [
+				{ type: 'iban', control: 'input' },
+				{ type: 'vat', control: 'input' },
+			],
+		};
+
+		expect(getPrioritizedInserterBlocks([])).toEqual([
+			'osf/field-input/iban',
+			'osf/field-input/vat',
+		]);
+	});
+
 	it('offers an input-controlled type as its block variation', () => {
 		global.osfSettings = {
 			fieldBlockNames: ['osf/field-input'],

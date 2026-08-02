@@ -9,10 +9,10 @@ export const icon = () => {
 			xmlns="http://www.w3.org/2000/svg"
 			fill="none"
 			stroke="currentColor"
-			stroke-linecap="round"
-			stroke-linejoin="round"
-			stroke-width="1.5"
-			class="osf-icon osf-icon--message"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			strokeWidth="1.5"
+			className="osf-icon osf-icon--message"
 			viewBox="0 0 24 24"
 		>
 			<Path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" />

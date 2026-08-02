@@ -26,7 +26,18 @@ export const SUBMIT_BUTTON_BLOCK = {
 	},
 };
 
+export const CONSENT_BLOCK = {
+	name: 'osf/field-consent',
+	attributes: {
+		label: __('I agree to the terms and conditions.', 'outstand-forms'),
+		required: true,
+	},
+};
+
+// The consent box sits above the buttons: it is the last thing a visitor
+// confirms before submitting, and it is not one of the fields being collected.
 export const TEMPLATE = [
+	['osf/field-consent', CONSENT_BLOCK.attributes],
 	[
 		'core/buttons',
 		SUBMIT_BUTTON_WRAPPER_BLOCK.attributes,

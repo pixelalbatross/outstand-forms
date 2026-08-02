@@ -77,6 +77,9 @@ $context = wp_interactivity_data_wp_context(
 		'fieldName'     => $field->get_field_name(),
 		'helpTextId'    => $field->get_help_text_id(),
 		'errorId'       => $field->get_error_id(),
+		// Only the rules naming a number, and only when this field has them, so
+		// a field that needs no pluralization carries nothing.
+		'fieldMessages' => ValidationMessages::for_field( $attributes['formId'], $field->get_validation_rules() ),
 		'initialRecord' => [
 			'value'           => $default_value,
 			'validationRules' => $field->get_validation_rules(),

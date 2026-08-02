@@ -193,6 +193,80 @@ class FormBlockParserTest extends \WP_UnitTestCase {
 	}
 
 	/**
+	 * Each choice block must resolve to its own type, the way field-textarea
+	 * does, rather than falling back to the `type` attribute.
+	 */
+	public function test_choice_blocks_resolve_their_own_type(): void {
+		$content = '<!-- wp:osf/form {"formId":"form-choice-types"} --><!-- wp:osf/form-fields -->'
+			. '<!-- wp:osf/field-select {"fieldId":1} /-->'
+			. '<!-- wp:osf/field-radio {"fieldId":2} /-->'
+			. '<!-- wp:osf/field-checkbox {"fieldId":3} /-->'
+			. '<!-- wp:osf/field-consent {"fieldId":4} /-->'
+			. '<!-- /wp:osf/form-fields --><!-- /wp:osf/form -->';
+		$post_id = self::factory()->post->create( [ 'post_content' => $content ] );
+
+		$parser = new FormBlockParser();
+		$data   = $parser->extract_form_data( 'form-choice-types', $post_id );
+
+		$this->assertSame( 'select', $data['field_configs']['field_1']['type'] );
+		$this->assertSame( 'radio', $data['field_configs']['field_2']['type'] );
+		$this->assertSame( 'checkbox', $data['field_configs']['field_3']['type'] );
+		$this->assertSame( 'consent', $data['field_configs']['field_4']['type'] );
+	}
+
+	/**
+	 * Options are authored as child blocks, so the parser has to fold them into
+	 * the field config: sanitization and validation both need the allowlist and
+	 * neither can see the block tree.
+	 */
+	public function test_choice_field_config_carries_its_options(): void {
+		$content = '<!-- wp:osf/form {"formId":"form-choice-options"} --><!-- wp:osf/form-fields -->'
+			. '<!-- wp:osf/field-select {"fieldId":1,"name":"country"} -->'
+			. '<!-- wp:osf/field-option {"label":"Portugal","value":"pt"} /-->'
+			. '<!-- wp:osf/field-option {"label":"Spain","value":"es"} /-->'
+			. '<!-- /wp:osf/field-select -->'
+			. '<!-- /wp:osf/form-fields --><!-- /wp:osf/form -->';
+		$post_id = self::factory()->post->create( [ 'post_content' => $content ] );
+
+		$parser = new FormBlockParser();
+		$data   = $parser->extract_form_data( 'form-choice-options', $post_id );
+		$config = $data['field_configs']['country'];
+
+		$this->assertSame(
+			[
+				[
+					'label' => 'Portugal',
+					'value' => 'pt',
+				],
+				[
+					'label' => 'Spain',
+					'value' => 'es',
+				],
+			],
+			$config['options']
+		);
+		$this->assertSame( [ 'pt', 'es' ], $config['validation_rules']['options'] );
+	}
+
+	/**
+	 * An option block is not a field: it must never gain a field config of its
+	 * own, however deeply the parser recurses.
+	 */
+	public function test_option_blocks_are_not_fields(): void {
+		$content = '<!-- wp:osf/form {"formId":"form-option-not-field"} --><!-- wp:osf/form-fields -->'
+			. '<!-- wp:osf/field-radio {"fieldId":1,"name":"size"} -->'
+			. '<!-- wp:osf/field-option {"label":"Small","value":"s"} /-->'
+			. '<!-- /wp:osf/field-radio -->'
+			. '<!-- /wp:osf/form-fields --><!-- /wp:osf/form -->';
+		$post_id = self::factory()->post->create( [ 'post_content' => $content ] );
+
+		$parser = new FormBlockParser();
+		$data   = $parser->extract_form_data( 'form-option-not-field', $post_id );
+
+		$this->assertSame( [ 'size' ], array_keys( $data['field_configs'] ) );
+	}
+
+	/**
 	 * A synced pattern whose reusable block post has been emptied must resolve
 	 * to no fields rather than erroring.
 	 */

@@ -12,6 +12,26 @@ class FormBlockParser {
 	public const FIELD_BLOCK_NAMES = [
 		'osf/field-input',
 		'osf/field-textarea',
+		'osf/field-select',
+		'osf/field-radio',
+		'osf/field-checkbox',
+		'osf/field-consent',
+	];
+
+	/**
+	 * Field blocks whose type is the block itself, not a `type` attribute.
+	 *
+	 * `osf/field-input` carries its type in an attribute because six types
+	 * share it; every other field block is one type.
+	 *
+	 * @var array<string, string>
+	 */
+	private const BLOCK_FIELD_TYPES = [
+		'osf/field-textarea' => 'textarea',
+		'osf/field-select'   => 'select',
+		'osf/field-radio'    => 'radio',
+		'osf/field-checkbox' => 'checkbox',
+		'osf/field-consent'  => 'consent',
 	];
 
 	/**
@@ -205,6 +225,11 @@ class FormBlockParser {
 				continue;
 			}
 
+			// A choice field's options are authored as child blocks, so they
+			// have to be folded into the attributes before the field is built:
+			// its rules are derived from them.
+			$attrs['options'] = Options::from_parsed_blocks( $block['innerBlocks'] ?? [] );
+
 			$field      = $this->field_factory->create( $type, $attrs );
 			$field_name = $field->get_field_name();
 
@@ -212,6 +237,7 @@ class FormBlockParser {
 				'type'             => $type,
 				'label'            => $attrs['label'] ?? '',
 				'fieldId'          => $attrs['fieldId'] ?? '',
+				'options'          => $attrs['options'],
 				'validation_rules' => $field->get_validation_rules(),
 			];
 		}
@@ -226,10 +252,6 @@ class FormBlockParser {
 	 * @return string The field type.
 	 */
 	private function get_field_type( array $block ): string {
-		if ( 'osf/field-textarea' === $block['blockName'] ) {
-			return 'textarea';
-		}
-
-		return $block['attrs']['type'] ?? 'text';
+		return self::BLOCK_FIELD_TYPES[ $block['blockName'] ] ?? ( $block['attrs']['type'] ?? 'text' );
 	}
 }

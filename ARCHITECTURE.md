@@ -19,15 +19,21 @@ outstand-forms/
 │   ├── FieldFactory.php                # Type registry: definitions, create(), sanitize()
 │   ├── FormBlockParser.php             # Extracts field configs from block content
 │   ├── FormSubmission.php              # No-JS fallback: handles plain page POSTs on 'template_redirect'
+│   ├── FieldRenderer.php               # Shared front-end render for the choice field blocks
+│   ├── Options.php                     # Collects osf/field-option children into label/value pairs
 │   ├── Fields/
 │   │   ├── FieldInterface.php          # Field contract
 │   │   └── Field.php                   # The field: attributes, components, render, validation, sanitize
 │   ├── Components/
 │   │   ├── ComponentInterface.php      # Component contract (get_markup)
+│   │   ├── GroupComponentInterface.php # Marks a control that renders several inputs under one name
 │   │   ├── AbstractComponent.php       # Shared helpers (field accessors)
 │   │   ├── Input.php                   # <input> with Interactivity directives
 │   │   ├── Textarea.php               # <textarea> with Interactivity directives
-│   │   ├── Label.php                   # <label> with required indicator
+│   │   ├── Select.php                  # <select> built from the field's options
+│   │   ├── Choice.php                  # Radio/checkbox group; a GroupComponent
+│   │   ├── Checkbox.php                # Single checkbox: the consent control
+│   │   ├── Label.php                   # <label>, or a plain <span> when naming a group
 │   │   ├── Error.php                   # Error message container
 │   │   └── HelpText.php               # Help text container
 │   ├── REST/V1/
@@ -135,7 +141,21 @@ osf/form (top-level container)
 │   │   usesContext: osf/formId, osf/labelPosition, osf/helpTextPosition, osf/requiredIndicator
 │   │   ancestor: osf/form-fields
 │   │
-│   └── osf/field-textarea
+│   ├── osf/field-textarea
+│   │   usesContext: osf/formId, osf/labelPosition, osf/helpTextPosition, osf/requiredIndicator
+│   │   ancestor: osf/form-fields
+│   │
+│   ├── osf/field-select / osf/field-radio / osf/field-checkbox
+│   │   │   usesContext: osf/formId, osf/labelPosition, osf/helpTextPosition, osf/requiredIndicator
+│   │   │   providesContext: osf/optionDisplay
+│   │   │   ancestor: osf/form-fields
+│   │   │   allowedBlocks: osf/field-option
+│   │   │
+│   │   └── osf/field-option (one choice: label + value)
+│   │       usesContext: osf/optionDisplay
+│   │       parent: osf/field-select, osf/field-radio, osf/field-checkbox
+│   │
+│   └── osf/field-consent (single checkbox, no options)
 │       usesContext: osf/formId, osf/labelPosition, osf/helpTextPosition, osf/requiredIndicator
 │       ancestor: osf/form-fields
 │
@@ -206,6 +226,20 @@ Built-in types:
 | `url` | `url` | `esc_url_raw` |
 | `number` | adds `min`/`max`, drops `minLength`/`maxLength`/`pattern` | numeric cast, non-numeric → `null` |
 | `textarea` | — (renders `<textarea>`) | `sanitize_textarea_field` |
+| `select`, `radio` | adds `options`, drops the string constraints | `sanitize_text_field` |
+| `checkbox` | adds `options`/`minSelected`/`maxSelected`, drops the string constraints | list of sanitized strings |
+| `consent` | `options` fixed to the ticked value | `sanitize_text_field` |
+
+The three choice types take their options from `osf/field-option` child blocks.
+`Options` converts them once, from either shape — `FormBlockParser` works with
+parsed arrays, a `render.php` with `WP_Block` instances — and everything
+downstream reads a plain `options` attribute. The `options` rule is derived from
+that list, so a submitted value no option offers fails validation rather than
+being silently dropped in sanitization.
+
+`checkbox` is the only multi-value type: it renders `name="topics[]"`, arrives as
+an array, and is the reason `required` counts a non-empty array and
+`FormSubmission` maps over arrays instead of casting them to a string.
 
 The `number` sanitizer deliberately yields `null` rather than `0` for non-numeric
 input, so a required number field still fails the `required` rule.
@@ -383,6 +417,13 @@ filter applies to the REST route and the no-JavaScript fallback alike.
 | `maxLength` | `validate_max_length` | `mb_strlen()` comparison; skips empty values |
 | `min` | `validate_min` | Float comparison; skips non-numeric values |
 | `max` | `validate_max` | Float comparison; skips non-numeric values |
+| `options` | `validate_options` | Every submitted value must appear in the field's option list; an empty list disables the rule |
+| `minSelected` | `validate_min_selected` | Selection count comparison; blanks are not selections |
+| `maxSelected` | `validate_max_selected` | Selection count comparison; blanks are not selections |
+
+`minSelected` and `maxSelected` have no HTML equivalent, so the browser cannot
+enforce them natively — the client store checks them before submitting and the
+server checks them again regardless.
 
 ### Custom Validator Registration
 

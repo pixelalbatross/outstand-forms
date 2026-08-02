@@ -7,7 +7,7 @@ import { applyFilters } from '@wordpress/hooks';
 /**
  * Internal dependencies
  */
-import { CORE_ALLOWED_BLOCKS, DEFAULT_BLOCK } from './constants';
+import { CORE_ALLOWED_BLOCKS, DEFAULT_BLOCK, PRIORITIZED_FIELD_TYPES } from './constants';
 import { getFieldBlockNames, getPrioritizedInserterBlocks } from '../../utils';
 
 export default function FormFieldsEdit() {
@@ -22,7 +22,7 @@ export default function FormFieldsEdit() {
 		__experimentalCaptureToolbars: true,
 		templateLock: false,
 		allowedBlocks,
-		prioritizedInserterBlocks: getPrioritizedInserterBlocks(),
+		prioritizedInserterBlocks: getPrioritizedInserterBlocks(PRIORITIZED_FIELD_TYPES),
 		defaultBlock: DEFAULT_BLOCK,
 	});
 

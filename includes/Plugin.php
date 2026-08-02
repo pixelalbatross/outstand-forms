@@ -91,9 +91,7 @@ class Plugin {
 	public function blocks_editor_scripts(): void {
 		$is_configured = FieldTurnstile::is_configured();
 
-		wp_localize_script(
-			'osf-form-editor-script',
-			'osfSettings',
+		$settings = wp_json_encode(
 			[
 				'spam'                 => [
 					'turnstile' => [
@@ -111,6 +109,18 @@ class Plugin {
 					'userNotification'  => EmailNotification::ACTION_USER_NOTIFICATION,
 				],
 			]
+		);
+
+		// Attached to `wp-blocks` rather than one block's own handle: every
+		// block editor script depends on it, so the data is defined before any
+		// of them run. `osf/field-input` builds its type variations at module
+		// evaluation, and its handle sorts ahead of the form's — localizing to
+		// a single block's handle left that module reading an undefined global
+		// and registering no variations at all.
+		wp_add_inline_script(
+			'wp-blocks',
+			sprintf( 'window.osfSettings = %s;', $settings ),
+			'before'
 		);
 	}
 

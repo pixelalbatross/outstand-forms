@@ -12,6 +12,28 @@ export const DEFAULT_BLOCK = {
 };
 
 /**
+ * The order field types are offered in, most-used first.
+ *
+ * Editorial, and the whole point of `prioritizedInserterBlocks`: these are
+ * pushed to the top of the inserter in this order. A type missing from this
+ * list is still offered, after these, in registration order — so a type
+ * registered through `outstand_forms_field_factory` needs no edit here.
+ */
+export const PRIORITIZED_FIELD_TYPES = [
+	'text',
+	'email',
+	'tel',
+	'url',
+	'number',
+	'password',
+	'textarea',
+	'select',
+	'radio',
+	'checkbox',
+	'consent',
+];
+
+/**
  * Blocks allowed inside the fields wrapper that are not form fields.
  *
  * The field blocks themselves are deliberately absent: they come from

@@ -11,6 +11,7 @@ import Label from '../components/Label';
 import HelpText from '../components/HelpText';
 import Input from '../components/Input';
 import Textarea from '../components/Textarea';
+import Checkbox from '../components/Checkbox';
 import { isInlineLabelPosition, resolveFieldControl } from '../utils';
 
 export default function Field({
@@ -19,6 +20,7 @@ export default function Field({
 	setAttributes,
 	context,
 	showFieldId = false,
+	options = null,
 }) {
 	const {
 		'osf/labelPosition': defaultLabelPosition,
@@ -62,6 +64,16 @@ export default function Field({
 				<Textarea attributes={attributes} setAttributes={setAttributes} context={context} />
 			);
 			break;
+		// A choice field's control is its option children, so the block passes
+		// the inner-blocks list in rather than the field building one.
+		case 'select':
+		case 'radio':
+		case 'checkbox':
+			field = options;
+			break;
+		case 'consent':
+			field = <Checkbox attributes={attributes} />;
+			break;
 		default:
 			field = (
 				<Notice status="warning" isDismissible={false}>
@@ -90,21 +102,28 @@ export default function Field({
 				</span>
 			)}
 
-			{labelPosition !== 'right' && label}
-			{!hasInlineLabel && helpTextPosition === 'top' && helpText}
+			{helpTextPosition === 'top' && helpText}
 
+			{/* An inline label sits beside the control, so the two are kept in
+			    one row and the help text is left out of it. On the front end the
+			    wrapper holds the help text too, but there it is either empty or
+			    real content; here it is an "Add help text" placeholder, which
+			    would size the row and push the label away from its control. */}
 			{hasInlineLabel ? (
-				<div className="osf-field__wrapper">
-					{helpTextPosition === 'top' && helpText}
-					{field}
-					{helpTextPosition === 'bottom' && helpText}
+				<div className="osf-field__row">
+					{labelPosition !== 'right' && label}
+					<div className="osf-field__wrapper">{field}</div>
+					{labelPosition === 'right' && label}
 				</div>
 			) : (
-				field
+				<>
+					{labelPosition !== 'right' && label}
+					{field}
+					{labelPosition === 'right' && label}
+				</>
 			)}
 
-			{!hasInlineLabel && helpTextPosition === 'bottom' && helpText}
-			{labelPosition === 'right' && label}
+			{helpTextPosition === 'bottom' && helpText}
 		</>
 	);
 }

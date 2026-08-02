@@ -14,6 +14,7 @@ PHP is the single source of truth: field configuration, validation rules and san
 ## Features
 
 - Fully block-based form builder.
+- Text, email, number, password, phone, URL, textarea, select, radio, checkbox and consent fields.
 - Client-side validation via the Interactivity API, with matching PHP validators server-side.
 - Field-level validation messages.
 - Input mask support via [Inputmask](https://robinherbots.github.io/Inputmask/), loaded only when a mask is set.
@@ -62,6 +63,8 @@ composer require outstand/forms
 2. Add field blocks inside the Form Fields wrapper:
    - **Input** (`osf/field-input`) — with Text, Email, Number, Password, Phone and URL variations.
    - **Textarea** (`osf/field-textarea`).
+   - **Select**, **Radio** and **Checkboxes** (`osf/field-select`, `osf/field-radio`, `osf/field-checkbox`) — each holds **Option** (`osf/field-option`) children, one per choice.
+   - **Consent** (`osf/field-consent`) — a single box for "I agree to the terms".
    - **Turnstile** (`osf/field-turnstile`) — spam protection, requires configured keys.
 3. Configure each field via the block sidebar: label, help text, validation rules, input mask.
 4. Configure the notification email on the form block.
@@ -94,7 +97,9 @@ Field internals (shared by every field type):
 
 - `.osf-field` — the field root, with `--label-left` / `--label-right` modifiers
 - `.osf-field__wrapper`, `.osf-field__label`, `.osf-field__required-indicator`
-- `.osf-field__input`, `.osf-field__textarea`
+- `.osf-field__input`, `.osf-field__textarea`, `.osf-field__select`, `.osf-field__checkbox`
+- `.osf-field__choices` — the radio/checkbox group, with `--radio` / `--checkbox` modifiers
+- `.osf-field__choice`, `.osf-field__choice-input`, `.osf-field__choice-label` — one option
 - `.osf-field__help-text`, `.osf-field__error`
 
 ## Hooks & Extensibility

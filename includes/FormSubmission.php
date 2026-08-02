@@ -2,6 +2,7 @@
 
 namespace Outstand\WP\Forms;
 
+use Outstand\WP\Forms\Components\Checkbox;
 use Outstand\WP\Forms\REST\V1\Forms;
 use WP_Error;
 use WP_REST_Request;
@@ -201,6 +202,16 @@ class FormSubmission extends BaseModule {
 
 					return $context['initialRecord']['isValid'] ?? true;
 				},
+				'isOptionChecked'               => static function () {
+					$context = wp_interactivity_get_context();
+
+					return self::resolve_option_checked( $context );
+				},
+				'isFieldChecked'                => static function () {
+					$context = wp_interactivity_get_context();
+
+					return Checkbox::CHECKED_VALUE === (string) ( $context['initialRecord']['value'] ?? '' );
+				},
 				'isFieldFocused'                => static function () {
 					return false;
 				},
@@ -234,7 +245,24 @@ class FormSubmission extends BaseModule {
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- The nonce is verified by the caller.
 		foreach ( (array) wp_unslash( $_POST ) as $key => $value ) {
-			if ( ! is_string( $key ) || in_array( $key, $skipped, true ) || ! is_scalar( $value ) ) {
+			if ( ! is_string( $key ) || in_array( $key, $skipped, true ) ) {
+				continue;
+			}
+
+			// A checkbox group posts `name[]` and arrives as an array. Casting
+			// that to a string would submit the literal "Array", so each item
+			// gets the baseline pass instead.
+			if ( is_array( $value ) ) {
+				$params[ $key ] = array_values(
+					array_map(
+						'sanitize_textarea_field',
+						array_map( 'strval', array_filter( $value, 'is_scalar' ) )
+					)
+				);
+				continue;
+			}
+
+			if ( ! is_scalar( $value ) ) {
 				continue;
 			}
 
@@ -279,6 +307,16 @@ class FormSubmission extends BaseModule {
 			}
 
 			$value = $request->get_param( $field_name );
+
+			// A multi-value field replays as a list, so the boxes the visitor
+			// ticked come back ticked. Casting it to a string here would drop
+			// every choice they made.
+			if ( is_array( $value ) ) {
+				$values[ $field_name ] = array_values(
+					array_map( 'strval', array_filter( $value, 'is_scalar' ) )
+				);
+				continue;
+			}
 
 			if ( ! is_scalar( $value ) ) {
 				continue;
@@ -325,8 +363,11 @@ class FormSubmission extends BaseModule {
 			return '';
 		}
 
-		$error   = (string) reset( $errors );
-		$message = $context['validationMessages'][ $error ] ?? '';
+		$error = (string) reset( $errors );
+
+		// A field's own message wins: it is the one pluralized against this
+		// field's number.
+		$message = $context['fieldMessages'][ $error ] ?? $context['validationMessages'][ $error ] ?? '';
 
 		if ( '' === $message ) {
 			return '';
@@ -369,5 +410,28 @@ class FormSubmission extends BaseModule {
 		$is_valid = $context['initialRecord']['isValid'] ?? true;
 
 		return $is_valid ? $help_text_id : sprintf( '%s %s', $error_id, $help_text_id );
+	}
+
+	/**
+	 * Resolve whether the option being rendered is the chosen one.
+	 *
+	 * Mirrors the `isOptionChecked` getter in view.js. Without a server-side
+	 * counterpart the directive processor resolves the binding to null and
+	 * strips the `checked` attribute the component rendered, so a replayed
+	 * submission would come back with every box cleared.
+	 *
+	 * @param array $context The merged field and option context.
+	 * @return bool
+	 */
+	private static function resolve_option_checked( array $context ): bool {
+
+		$option_value = (string) ( $context['optionValue'] ?? '' );
+		$value        = $context['initialRecord']['value'] ?? '';
+
+		if ( is_array( $value ) ) {
+			return in_array( $option_value, array_map( 'strval', $value ), true );
+		}
+
+		return (string) $value === $option_value;
 	}
 }

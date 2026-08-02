@@ -1,0 +1,40 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "osf/field-option",
+  "version": "1.0.0",
+  "title": "Option",
+  "category": "osf",
+  "icon": "",
+  "description": "",
+  "keywords": [
+    "option",
+    "choice"
+  ],
+  "textdomain": "outstand-forms",
+  "parent": [
+    "osf/field-select",
+    "osf/field-radio",
+    "osf/field-checkbox"
+  ],
+  "attributes": {
+    "label": {
+      "type": "string",
+      "default": ""
+    },
+    "value": {
+      "type": "string",
+      "default": ""
+    }
+  },
+  "usesContext": [
+    "osf/optionDisplay"
+  ],
+  "supports": {
+    "html": false,
+    "anchor": false,
+    "reusable": false,
+    "interactivity": false
+  },
+  "editorScript": "file:./index.js"
+}

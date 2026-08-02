@@ -1,4 +1,14 @@
 /**
+ * The value a ticked consent box submits.
+ *
+ * Mirrors `Components\Checkbox::CHECKED_VALUE`; the two must agree or a box
+ * ticked in the browser would submit something the server's allowlist rejects.
+ *
+ * @type {string}
+ */
+export const CHECKED_VALUE = '1';
+
+/**
  * Allowed formats for the help text field.
  *
  * @type {Array}

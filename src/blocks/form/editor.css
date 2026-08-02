@@ -20,6 +20,33 @@
 	position: relative;
 }
 
+/*
+ * Editor-only, and deliberately so: nothing here reaches the front end, where
+ * the theme is left to style the form.
+ *
+ * A field with an inline label pairs the label and its control in a row and
+ * keeps the help text out of it. On the front end the help text sits inside the
+ * control's wrapper and is either empty or real content, so it costs nothing;
+ * here it is an "Add help text" placeholder that would size the row and push
+ * the label away from its control.
+ */
+/* Matches the specificity of the front-end rule this overrides. */
+.osf-field.osf-field--label-left,
+.osf-field.osf-field--label-right {
+	flex-direction: column;
+	align-items: stretch;
+}
+
+.osf-field__row {
+	display: flex;
+	align-items: center;
+	gap: 0.5em;
+}
+
+.osf-field__row .osf-field__label {
+	margin: 0;
+}
+
 .osf-field__id {
 	position: absolute;
 	top: 4px;

@@ -642,5 +642,124 @@
 		"rules": { "maxLength": 1 },
 		"is_valid": true,
 		"errors": []
+	},
+	{
+		"description": "required fails an empty array: nothing was ticked",
+		"value": [],
+		"rules": { "required": true },
+		"is_valid": false,
+		"errors": [ "required" ]
+	},
+	{
+		"description": "required fails an array of blanks: still nothing ticked",
+		"value": [ "" ],
+		"rules": { "required": true },
+		"is_valid": false,
+		"errors": [ "required" ]
+	},
+	{
+		"description": "required passes an array with one real value",
+		"value": [ "pt" ],
+		"rules": { "required": true },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "options passes a scalar value the field offers",
+		"value": "pt",
+		"rules": { "options": [ "pt", "es" ] },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "options fails a scalar value the field does not offer",
+		"value": "fr",
+		"rules": { "options": [ "pt", "es" ] },
+		"is_valid": false,
+		"errors": [ "options" ]
+	},
+	{
+		"description": "options passes when every array item is offered",
+		"value": [ "pt", "es" ],
+		"rules": { "options": [ "pt", "es" ] },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "options fails when any array item is not offered",
+		"value": [ "pt", "fr" ],
+		"rules": { "options": [ "pt", "es" ] },
+		"is_valid": false,
+		"errors": [ "options" ]
+	},
+	{
+		"description": "options is disabled by an empty allowlist, which is a field with no options authored yet",
+		"value": "anything",
+		"rules": { "options": [] },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "options ignores a blank item, leaving absence to required",
+		"value": [ "" ],
+		"rules": { "options": [ "pt" ] },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "minSelected fails below the minimum",
+		"value": [ "pt" ],
+		"rules": { "minSelected": 2 },
+		"is_valid": false,
+		"errors": [ "minSelected" ]
+	},
+	{
+		"description": "minSelected passes at the boundary",
+		"value": [ "pt", "es" ],
+		"rules": { "minSelected": 2 },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "minSelected counts a scalar as one selection",
+		"value": "pt",
+		"rules": { "minSelected": 1 },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "minSelected does not count blanks",
+		"value": [ "", "" ],
+		"rules": { "minSelected": 1 },
+		"is_valid": false,
+		"errors": [ "minSelected" ]
+	},
+	{
+		"description": "minSelected of zero disables the rule",
+		"value": [],
+		"rules": { "minSelected": 0 },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "maxSelected fails above the maximum",
+		"value": [ "pt", "es", "fr" ],
+		"rules": { "maxSelected": 2 },
+		"is_valid": false,
+		"errors": [ "maxSelected" ]
+	},
+	{
+		"description": "maxSelected passes at the boundary",
+		"value": [ "pt", "es" ],
+		"rules": { "maxSelected": 2 },
+		"is_valid": true,
+		"errors": []
+	},
+	{
+		"description": "maxSelected of zero disables the rule",
+		"value": [ "pt", "es", "fr" ],
+		"rules": { "maxSelected": 0 },
+		"is_valid": true,
+		"errors": []
 	}
 ]

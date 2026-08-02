@@ -69,33 +69,9 @@ $context = wp_interactivity_data_wp_context(
 				$form_id
 			),
 		],
-		/**
-		 * Filters the validation messages.
-		 *
-		 * @param array  $messages An associative array of messages keyed by rule name.
-		 *                         Example:
-		 *                         [
-		 *                             'required'  => 'This field is required.',
-		 *                             'minLength' => 'Please enter at least {{min}} characters.',
-		 *                             'maxLength' => 'Please enter no more than {{max}} characters.',
-		 *                         ]
-		 * @param string $form_id  The form ID.
-		 * @return array
-		 */
-		'validationMessages' => apply_filters(
-			'outstand_forms_validation_messages',
-			[
-				'required'  => __( 'This field is required.', 'outstand-forms' ),
-				'pattern'   => __( 'The value does not match the expected format.', 'outstand-forms' ),
-				'email'     => __( 'Please enter a valid email address.', 'outstand-forms' ),
-				'url'       => __( 'Please enter a valid URL.', 'outstand-forms' ),
-				'minLength' => __( 'Please enter at least {{min}} characters.', 'outstand-forms' ),
-				'maxLength' => __( 'Please enter no more than {{max}} characters.', 'outstand-forms' ),
-				'min'       => __( 'Please enter a value greater than or equal to {{min}}.', 'outstand-forms' ),
-				'max'       => __( 'Please enter a value less than or equal to {{max}}.', 'outstand-forms' ),
-			],
-			$form_id
-		),
+		// Messages naming a number are pluralized per field, where the count is
+		// known, and arrive in the field's own context. See ValidationMessages.
+		'validationMessages' => ValidationMessages::for_form( $form_id ),
 	]
 );
 

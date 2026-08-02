@@ -17,6 +17,7 @@
     "osf/formId"
   ],
   "allowedBlocks": [
+    "osf/field-consent",
     "core/buttons",
     "core/button",
     "osf/field-turnstile"

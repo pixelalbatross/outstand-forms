@@ -1,0 +1,86 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "osf/field-select",
+  "version": "1.0.0",
+  "title": "Select",
+  "category": "osf",
+  "icon": "",
+  "description": "",
+  "keywords": [
+    "field",
+    "select",
+    "dropdown"
+  ],
+  "textdomain": "outstand-forms",
+  "ancestor": [
+    "osf/form-fields"
+  ],
+  "allowedBlocks": [
+    "osf/field-option"
+  ],
+  "attributes": {
+    "fieldId": {
+      "type": "integer"
+    },
+    "name": {
+      "type": "string",
+      "default": ""
+    },
+    "defaultValue": {
+      "type": "string",
+      "default": ""
+    },
+    "required": {
+      "type": "boolean",
+      "default": false
+    },
+    "placeholder": {
+      "type": "string",
+      "default": ""
+    },
+    "optionDisplay": {
+      "type": "string",
+      "default": "select"
+    },
+    "ariaLabel": {
+      "type": "string",
+      "default": ""
+    },
+    "label": {
+      "type": "string",
+      "default": ""
+    },
+    "labelPosition": {
+      "type": "string"
+    },
+    "helpText": {
+      "type": "string",
+      "default": ""
+    },
+    "helpTextPosition": {
+      "type": "string"
+    }
+  },
+  "providesContext": {
+    "osf/optionDisplay": "optionDisplay"
+  },
+  "usesContext": [
+    "osf/formId",
+    "osf/labelPosition",
+    "osf/helpTextPosition",
+    "osf/requiredIndicator"
+  ],
+  "supports": {
+    "html": false,
+    "anchor": true,
+    "reusable": false,
+    "spacing": {
+      "padding": true,
+      "margin": true
+    },
+    "interactivity": true
+  },
+  "editorScript": "file:./index.js",
+  "render": "file:./render.php"
+}

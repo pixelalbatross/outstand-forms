@@ -101,6 +101,9 @@ class Validator {
 		$this->register( 'min', [ $this, 'validate_min' ] );
 		$this->register( 'max', [ $this, 'validate_max' ] );
 		$this->register( 'pattern', [ $this, 'validate_pattern' ] );
+		$this->register( 'options', [ $this, 'validate_options' ] );
+		$this->register( 'minSelected', [ $this, 'validate_min_selected' ] );
+		$this->register( 'maxSelected', [ $this, 'validate_max_selected' ] );
 	}
 
 	/**
@@ -169,7 +172,85 @@ class Validator {
 			return '' !== trim( $value );
 		}
 
+		// A multi-value field arrives as an array, where "filled in" means at
+		// least one box ticked. An array of empty strings is nothing ticked.
+		if ( is_array( $value ) ) {
+			return ! empty( array_filter( $value, fn( mixed $item ): bool => ! $this->is_absent( $item ) ) );
+		}
+
 		return true;
+	}
+
+	/**
+	 * Validate that every submitted value is one the field offers.
+	 *
+	 * The allowlist is built from the field's own options, so this is what
+	 * separates a real choice from a forged or stale one. An empty config
+	 * disables the rule, which is what a field with no options authored yet
+	 * has.
+	 *
+	 * @param mixed $value  The value.
+	 * @param array $params Parameters (unused).
+	 * @param mixed $config Rule config (allowed values).
+	 * @return bool
+	 */
+	protected function validate_options( mixed $value, array $params, mixed $config ): bool {
+
+		if ( ! is_array( $config ) || empty( $config ) || $this->is_absent( $value ) ) {
+			return true;
+		}
+
+		$allowed   = array_map( 'strval', $config );
+		$submitted = array_map( 'strval', is_array( $value ) ? $value : [ $value ] );
+
+		foreach ( $submitted as $item ) {
+			// An unticked group submits nothing rather than an empty item, so a
+			// blank here is a caller normalizing absence; `required` is what
+			// decides whether that is acceptable.
+			if ( '' === $item ) {
+				continue;
+			}
+
+			if ( ! in_array( $item, $allowed, true ) ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Validate the minimum number of selected values.
+	 *
+	 * @param mixed $value  The value.
+	 * @param array $params Parameters (unused).
+	 * @param mixed $config Rule config (minimum count).
+	 * @return bool
+	 */
+	protected function validate_min_selected( mixed $value, array $params, mixed $config ): bool {
+
+		if ( ! is_numeric( $config ) || $config < 1 ) {
+			return true;
+		}
+
+		return $this->count_selected( $value ) >= (int) $config;
+	}
+
+	/**
+	 * Validate the maximum number of selected values.
+	 *
+	 * @param mixed $value  The value.
+	 * @param array $params Parameters (unused).
+	 * @param mixed $config Rule config (maximum count).
+	 * @return bool
+	 */
+	protected function validate_max_selected( mixed $value, array $params, mixed $config ): bool {
+
+		if ( ! is_numeric( $config ) || $config < 1 ) {
+			return true;
+		}
+
+		return $this->count_selected( $value ) <= (int) $config;
 	}
 
 	/**
@@ -311,5 +392,25 @@ class Validator {
 	 */
 	private function is_absent( mixed $value ): bool {
 		return '' === $value || null === $value;
+	}
+
+	/**
+	 * Count how many choices a submission actually carries.
+	 *
+	 * Blank items are not selections: an unticked group can arrive as `''` or
+	 * as `[ '' ]` depending on the path, and neither means one box ticked.
+	 *
+	 * @param mixed $value The submitted value.
+	 * @return int
+	 */
+	private function count_selected( mixed $value ): int {
+
+		if ( $this->is_absent( $value ) ) {
+			return 0;
+		}
+
+		$values = is_array( $value ) ? $value : [ $value ];
+
+		return count( array_filter( $values, fn( mixed $item ): bool => ! $this->is_absent( $item ) ) );
 	}
 }

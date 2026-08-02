@@ -3,7 +3,10 @@
 namespace Outstand\WP\Forms;
 
 use InvalidArgumentException;
+use Outstand\WP\Forms\Components\Checkbox as CheckboxComponent;
+use Outstand\WP\Forms\Components\Choice as ChoiceComponent;
 use Outstand\WP\Forms\Components\ComponentInterface;
+use Outstand\WP\Forms\Components\Select as SelectComponent;
 use Outstand\WP\Forms\Components\Textarea as TextareaComponent;
 use Outstand\WP\Forms\Fields\Field;
 use Outstand\WP\Forms\Fields\FieldInterface;
@@ -211,6 +214,35 @@ class FieldFactory {
 	protected function get_default_field_types(): array {
 
 		return [
+			'checkbox' => [
+				'component' => static function ( FieldInterface $field ): ComponentInterface {
+					return new ChoiceComponent( $field, 'checkbox' );
+				},
+				'rules'     => static function ( array $rules, array $attributes ): array {
+					return self::get_choice_rules( $rules, $attributes, true );
+				},
+				'sanitize'  => static function ( mixed $value ): array {
+					return self::sanitize_choices( $value );
+				},
+				'control'   => 'checkbox',
+				'label'     => __( 'Checkboxes', 'outstand-forms' ),
+			],
+			'consent'  => [
+				'component' => static function ( FieldInterface $field ): ComponentInterface {
+					return new CheckboxComponent( $field );
+				},
+				'rules'     => static function ( array $rules, array $attributes ): array {
+					$rules = self::get_choice_rules( $rules, $attributes );
+
+					// A consent box submits one value or nothing at all, so the
+					// allowlist is fixed rather than authored.
+					$rules['options'] = [ CheckboxComponent::CHECKED_VALUE ];
+
+					return $rules;
+				},
+				'control'   => 'consent',
+				'label'     => __( 'Consent', 'outstand-forms' ),
+			],
 			'email'    => [
 				'rules'    => [ 'email' => true ],
 				'sanitize' => 'sanitize_email',
@@ -226,6 +258,26 @@ class FieldFactory {
 				},
 			],
 			'password' => [],
+			'radio'    => [
+				'component' => static function ( FieldInterface $field ): ComponentInterface {
+					return new ChoiceComponent( $field, 'radio' );
+				},
+				'rules'     => static function ( array $rules, array $attributes ): array {
+					return self::get_choice_rules( $rules, $attributes );
+				},
+				'control'   => 'radio',
+				'label'     => __( 'Radio', 'outstand-forms' ),
+			],
+			'select'   => [
+				'component' => static function ( FieldInterface $field ): ComponentInterface {
+					return new SelectComponent( $field );
+				},
+				'rules'     => static function ( array $rules, array $attributes ): array {
+					return self::get_choice_rules( $rules, $attributes );
+				},
+				'control'   => 'select',
+				'label'     => __( 'Select', 'outstand-forms' ),
+			],
 			'tel'      => [],
 			'text'     => [],
 			'textarea' => [
@@ -240,6 +292,71 @@ class FieldFactory {
 				'sanitize' => 'esc_url_raw',
 			],
 		];
+	}
+
+	/**
+	 * Build the validation rules for a choice type.
+	 *
+	 * Choice fields drop the string constraints and take an allowlist of the
+	 * authored option values instead. Multi-value fields additionally take the
+	 * selection-count bounds.
+	 *
+	 * @param array $rules       The base validation rules.
+	 * @param array $attributes  The field attributes.
+	 * @param bool  $is_multiple Whether the field accepts several values.
+	 * @return array
+	 */
+	protected static function get_choice_rules( array $rules, array $attributes, bool $is_multiple = false ): array {
+
+		// String constraints describe a typed value; a choice field's value is
+		// picked from a fixed list, so they can never apply.
+		unset( $rules['minLength'], $rules['maxLength'], $rules['pattern'] );
+
+		$options = $attributes['options'] ?? [];
+
+		// The allowlist is derived from the authored options rather than set by
+		// hand: a submitted value that no option offers is a forged or stale
+		// one, and fails instead of being quietly accepted.
+		$rules['options'] = Options::get_values( $options );
+
+		if ( ! $is_multiple ) {
+			return $rules;
+		}
+
+		if ( ! empty( $attributes['minSelected'] ) ) {
+			$rules['minSelected'] = (int) $attributes['minSelected'];
+		}
+
+		if ( ! empty( $attributes['maxSelected'] ) ) {
+			$rules['maxSelected'] = (int) $attributes['maxSelected'];
+		}
+
+		return $rules;
+	}
+
+	/**
+	 * Sanitize a multi-value choice submission.
+	 *
+	 * Shape only: every item becomes a sanitized string and the list is
+	 * reindexed. Whether a value is one the field actually offers is the
+	 * `options` rule's job, so a forged value survives sanitization and then
+	 * fails validation with a message, rather than vanishing silently.
+	 *
+	 * @param mixed $value The submitted value.
+	 * @return array<int, string>
+	 */
+	protected static function sanitize_choices( mixed $value ): array {
+
+		$values = is_array( $value ) ? $value : [ $value ];
+
+		$values = array_filter(
+			$values,
+			static function ( mixed $item ): bool {
+				return is_scalar( $item );
+			}
+		);
+
+		return array_values( array_map( 'sanitize_text_field', array_map( 'strval', $values ) ) );
 	}
 
 	/**

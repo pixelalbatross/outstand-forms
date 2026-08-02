@@ -2,7 +2,27 @@
 
 namespace Outstand\WP\Forms\Components;
 
+use Outstand\WP\Forms\Fields\FieldInterface;
+
 class Label extends AbstractComponent {
+
+	/**
+	 * Whether the label names a group of controls rather than a single one.
+	 *
+	 * @var bool
+	 */
+	protected bool $is_group;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param FieldInterface $field    Field instance.
+	 * @param bool           $is_group Whether the label names a group of controls.
+	 */
+	public function __construct( FieldInterface $field, bool $is_group = false ) {
+		parent::__construct( $field );
+		$this->is_group = $is_group;
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -24,14 +44,22 @@ class Label extends AbstractComponent {
 			);
 		}
 
+		// A group of radios or checkboxes has no single control to point at, so
+		// the label drops `for` and becomes a plain element the group names
+		// itself after through `aria-labelledby`. A `<label for>` aimed at a
+		// container would be ignored by assistive technology anyway.
+		$html_attributes = [
+			'id'    => $this->get_field_label_id(),
+			'for'   => $this->is_group ? null : $this->get_field_id(),
+			'class' => 'osf-field__label',
+		];
+
+		$element = $this->is_group ? 'span' : 'label';
+
 		return sprintf(
-			'<label
-				id="%1$s"
-				for="%2$s"
-				class="osf-field__label"
-			>%3$s%4$s</label>',
-			esc_attr( $this->get_field_label_id() ),
-			esc_attr( $this->get_field_id() ),
+			'<%1$s %2$s>%3$s%4$s</%1$s>',
+			$element,
+			$this->build_attributes( $html_attributes ),
 			wp_kses_post( $attributes['label'] ),
 			wp_kses_post( $required_indicator )
 		);

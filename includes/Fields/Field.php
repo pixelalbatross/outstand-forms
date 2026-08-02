@@ -4,6 +4,7 @@ namespace Outstand\WP\Forms\Fields;
 
 use Outstand\WP\Forms\Components\ComponentInterface;
 use Outstand\WP\Forms\Components\Error;
+use Outstand\WP\Forms\Components\GroupComponentInterface;
 use Outstand\WP\Forms\Components\HelpText;
 use Outstand\WP\Forms\Components\Input;
 use Outstand\WP\Forms\Components\Label;
@@ -98,10 +99,13 @@ class Field implements FieldInterface {
 	 * {@inheritDoc}
 	 */
 	public function initialize_components(): void {
-		$this->components['label']     = new Label( $this );
+		// The control is built first because it decides how the label is
+		// written: a group of radios or checkboxes has no single control for a
+		// `<label for>` to point at.
+		$this->components['field']     = $this->create_field_component();
+		$this->components['label']     = new Label( $this, $this->components['field'] instanceof GroupComponentInterface );
 		$this->components['help_text'] = new HelpText( $this );
 		$this->components['error']     = new Error( $this );
-		$this->components['field']     = $this->create_field_component();
 	}
 
 	/**

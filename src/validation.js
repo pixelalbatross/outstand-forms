@@ -97,8 +97,82 @@ function required(value, params, config) {
 	if (value === undefined || value === null) {
 		return false;
 	}
+
+	// A multi-value field arrives as an array, where "filled in" means at least
+	// one box ticked. An array of empty strings is nothing ticked.
+	if (Array.isArray(value)) {
+		return value.some((item) => !isAbsent(item));
+	}
+
 	const trimmedValue = typeof value === 'string' ? value.trim() : value;
 	return trimmedValue !== '';
+}
+
+/**
+ * Count how many choices a value actually carries.
+ *
+ * @param {*} value The value to count.
+ * @return {number} The number of selections.
+ */
+function countSelected(value) {
+	if (isAbsent(value)) {
+		return 0;
+	}
+
+	const values = Array.isArray(value) ? value : [value];
+
+	return values.filter((item) => !isAbsent(item)).length;
+}
+
+/**
+ * Validate that every submitted value is one the field offers.
+ *
+ * @param {*}     value  The value to validate.
+ * @param {Array} config The allowed values.
+ * @return {boolean} True if every value is allowed.
+ */
+function options(value, config) {
+	if (!Array.isArray(config) || config.length === 0 || isAbsent(value)) {
+		return true;
+	}
+
+	const allowed = config.map(toStringValue);
+	const submitted = (Array.isArray(value) ? value : [value]).map(toStringValue);
+
+	// An unticked group submits nothing rather than an empty item, so a blank
+	// here is a caller normalizing absence; `required` decides whether that is
+	// acceptable.
+	return submitted.every((item) => item === '' || allowed.includes(item));
+}
+
+/**
+ * Validate the minimum number of selected values.
+ *
+ * @param {*}      value  The value to validate.
+ * @param {number} config The minimum count.
+ * @return {boolean} True if enough values are selected.
+ */
+function minSelected(value, config = 0) {
+	if (!Number.isFinite(Number(config)) || Number(config) < 1) {
+		return true;
+	}
+
+	return countSelected(value) >= Number(config);
+}
+
+/**
+ * Validate the maximum number of selected values.
+ *
+ * @param {*}      value  The value to validate.
+ * @param {number} config The maximum count.
+ * @return {boolean} True if no more than the maximum are selected.
+ */
+function maxSelected(value, config = 0) {
+	if (!Number.isFinite(Number(config)) || Number(config) < 1) {
+		return true;
+	}
+
+	return countSelected(value) <= Number(config);
 }
 
 /**
@@ -239,6 +313,9 @@ const defaultValidators = {
 	maxLength,
 	min,
 	max,
+	options,
+	minSelected,
+	maxSelected,
 };
 
 /**
